@@ -237,7 +237,7 @@ chmod 400 ~/Downloads/ict24267-key.pem
 
 | Type | Protocol | Port | Source | Purpose |
 |---|---|---|---|---|
-| SSH | TCP | 22 | My IP | Remote access |
+| SSH | TCP | 22 | 0.0.0.0/0 | Remote access |
 | HTTP | TCP | 80 | 0.0.0.0/0 | Web access |
 | Custom TCP | TCP | 5000 | 0.0.0.0/0 | Flask dev server |
 
