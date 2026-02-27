@@ -1,6 +1,6 @@
 #  LAB Manual for ICT24267 AWS Workshop
 
-(Data Pipeline using AWS (Free Tier)
+(AWS Workshop (Free Tier))
 
 
 ##  -  SPU - ICT - AJ. Aumnaj K.
