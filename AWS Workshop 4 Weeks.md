@@ -231,7 +231,7 @@ aws --version
 1. EC2 → **Instances** → **Launch instances**
 2. Name: `ict24267-webserver`
 3. AMI: **Amazon Linux 2023 AMI** (Free tier eligible)
-4. Instance type: **t2.micro** ✅
+4. Instance type: **t3.micro** ✅
 5. Key pair: `ict24267-key`
 6. Security group: `ict24267-web-sg`
 7. Storage: **8 GiB gp3**
