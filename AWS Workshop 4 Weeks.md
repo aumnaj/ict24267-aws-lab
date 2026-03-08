@@ -215,13 +215,6 @@ aws --version
 4. Private key file format: **.pem** (macOS/Linux) หรือ **.ppk** (Windows + PuTTY)
 5. คลิก **Create key pair** → บันทึกไฟล์ไว้ในที่ปลอดภัย
 
-
-**หากใช้ macOS ในการ remote terminal ssh 
-```bash
-# macOS/Linux: ปรับ permission ของ key file
-chmod 400 ~/Downloads/ict24267-key.pem
-```
-
 ### ขั้นตอนที่ 2: สร้าง Security Group
 1. EC2 → **Security Groups** → **Create security group**
 2. Name: `ict24267-web-sg`
@@ -343,20 +336,12 @@ echo "Setup complete!" >> /var/log/user-data.log
 
 9. คลิก **Launch instance**
 
-### ขั้นตอนที่ 4: เชื่อมต่อผ่าน SSH
-```bash
-# เชื่อมต่อ EC2 Instance
-ssh -i ~/Downloads/ict24267-key.pem ec2-user@<YOUR_PUBLIC_IP>
+### ขั้นตอนที่ 4: เชื่อมต่อผ่าน Web Console
 
-# ตรวจสอบสถานะ app
-sudo systemctl status student-app
-
-# ดู log
-sudo journalctl -u student-app -f
-
-# ตรวจสอบ User Data log
-cat /var/log/user-data.log
-```
+1. EC2 → **Instances** → **Launch instances**
+2. Name: `ict24267-webserver`
+3. Connect > Connect using Public IP > Connect
+4. Instance type: **t2.micro** ✅
 
 ### ขั้นตอนที่ 5: ทดสอบ API
 ```bash
