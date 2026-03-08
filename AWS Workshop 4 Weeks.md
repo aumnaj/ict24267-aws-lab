@@ -341,7 +341,6 @@ echo "Setup complete!" >> /var/log/user-data.log
 1. EC2 → **Instances** → **Launch instances**
 2. Name: `ict24267-webserver`
 3. Connect > Connect using Public IP > Connect
-4. Instance type: **t2.micro** ✅
 
 ### ขั้นตอนที่ 5: ทดสอบ API
 ```bash
