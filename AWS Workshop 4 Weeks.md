@@ -133,7 +133,7 @@ Week 4 │ Integration   │ รวมทุกส่วน + Security + Monitor
 
 | บริการ | Free Tier Limit | หมายเหตุ |
 |---|---|---|
-| **EC2** | t2.micro หรือ t3.micro, 750 ชม./เดือน | 12 เดือนแรก |
+| **EC2** | t3.micro, 750 ชม./เดือน | 12 เดือนแรก |
 | **RDS** | db.t3.micro, 750 ชม./เดือน, 20 GB storage | 12 เดือนแรก |
 | **Lambda** | 1,000,000 requests/เดือน, 400,000 GB-sec | ตลอดไป (Always Free) |
 | **API Gateway** | 1,000,000 REST API calls/เดือน | 12 เดือนแรก |
@@ -203,7 +203,7 @@ aws --version
 ## 🔧 LAB 1-1: สร้าง EC2 Instance พร้อม User Data
 
 ### ข้อควรระวัง Free Tier
-- ✅ ใช้ **t2.micro** หรือ **t3.micro** เท่านั้น
+- ✅ ใช้ **t3.micro** เท่านั้น
 - ✅ **Amazon Linux 2023** หรือ **Ubuntu 22.04 LTS** (Free Tier eligible)
 - ✅ Storage: **8 GB gp2/gp3** (ไม่เกิน 30 GB รวม)
 - ❌ **อย่า** สร้าง Instance หลายตัวพร้อมกัน (750 ชม./เดือน รวมทุก Instance)
@@ -215,6 +215,8 @@ aws --version
 4. Private key file format: **.pem** (macOS/Linux) หรือ **.ppk** (Windows + PuTTY)
 5. คลิก **Create key pair** → บันทึกไฟล์ไว้ในที่ปลอดภัย
 
+
+**หากใช้ macOS ในการ remote terminal ssh 
 ```bash
 # macOS/Linux: ปรับ permission ของ key file
 chmod 400 ~/Downloads/ict24267-key.pem
