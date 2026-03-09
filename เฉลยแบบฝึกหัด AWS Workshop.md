@@ -1,4 +1,4 @@
-# เฉลยแบบฝึกหัด LAB Manual
+# เฉลยแบบฝึกหัด LAB Manual (AWS Workshop)
 # วิชา ICT 24267 Cloud Computing
 ## ภาคการศึกษา 2/2568
 
