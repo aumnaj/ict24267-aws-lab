@@ -543,7 +543,34 @@ Enable automated backups: ✅
 
 ```bash
 # SSH เข้า EC2 ก่อน จากนั้นรันคำสั่ง
-sudo yum install -y mysql
+1 — Update packages
+sudo dnf update -ycopy
+
+
+2 — Install MySQL Community repo
+sudo dnf install -y https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpmcopy
+
+
+3 — Import GPG key
+sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023copy
+
+
+4 — Install MySQL Server 8.4 (LTS)
+sudo dnf install -y mysql-community-servercopy
+
+
+5 — Start & enable service
+sudo systemctl start mysqld
+sudo systemctl enable mysqldcopy
+
+
+6 — Get temp root password & secure
+sudo grep 'temporary password' /var/log/mysqld.log
+sudo mysql_secure_installationcopy
+
+
+7 — ตรวจสอบ version
+mysql --version
 
 # ทดสอบเชื่อมต่อ RDS (แทนที่ด้วย Endpoint จริง)
 mysql -h ict24267-db.xxxxxxxxxx.ap-southeast-1.rds.amazonaws.com \
