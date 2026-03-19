@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICT 24267 — Week 3–4 Serverless LAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+Thai:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0e1a;
+  --bg2:      #0f1628;
+  --bg3:      #141d35;
+  --border:   rgba(0,255,200,0.15);
+  --cyan:     #00ffc8;
+  --purple:   #b06cff;
+  --pink:     #ff4da6;
+  --yellow:   #ffe03a;
+  --orange:   #ff7b35;
+  --green:    #39ff8f;
+  --red:      #ff4060;
+  --blue:     #4db8ff;
+  --text:     #c8d8f0;
+  --muted:    #5a6a8a;
+  --mono:     'JetBrains Mono', 'Space Mono', monospace;
+  --thai:     'Noto Sans Thai', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--thai);
+  font-size:15px;
+  line-height:1.7;
+  overflow-x:hidden;
+}
+
+/* ── Animated grid background ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,200,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,200,0.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,255,200,0.06),transparent);
+  pointer-events:none;z-index:0;
+}
+
+/* ── Layout ── */
+.page{max-width:900px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1}
+
+/* ── Hero header ── */
+.hero{
+  text-align:center;
+  padding:60px 0 40px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:48px;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(0,255,200,0.08);
+  border:1px solid rgba(0,255,200,0.3);
+  color:var(--cyan);
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:3px;
+  padding:5px 16px;
+  border-radius:2px;
+  margin-bottom:20px;
+  text-transform:uppercase;
+}
+.hero h1{
+  font-size:clamp(28px,5vw,48px);
+  font-weight:700;
+  letter-spacing:-1px;
+  line-height:1.15;
+  margin-bottom:8px;
+}
+.hero h1 .w3{color:var(--cyan)}
+.hero h1 .w4{color:var(--purple)}
+.hero-sub{color:var(--muted);font-size:14px;margin-top:12px}
+.hero-sub span{color:var(--yellow);font-family:var(--mono)}
+
+/* ── Section divider ── */
+.week-divider{
+  display:flex;align-items:center;gap:16px;
+  margin:56px 0 32px;
+}
+.week-divider .label{
+  font-family:var(--mono);font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;white-space:nowrap;
+}
+.week-divider .line{flex:1;height:1px}
+.w3-div .label{color:var(--cyan)}
+.w3-div .line{background:linear-gradient(90deg,rgba(0,255,200,0.4),transparent)}
+.w4-div .label{color:var(--purple)}
+.w4-div .line{background:linear-gradient(90deg,rgba(176,108,255,0.4),transparent)}
+
+/* ── TOC ── */
+.toc{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:24px 28px;
+  margin-bottom:40px;
+}
+.toc-title{
+  font-family:var(--mono);font-size:11px;letter-spacing:2px;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:16px;
+}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 32px}
+.toc a{
+  color:var(--muted);font-size:13px;text-decoration:none;
+  padding:3px 0;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid transparent;
+  transition:color .2s,border-color .2s;
+}
+.toc a:hover{color:var(--cyan);border-bottom-color:rgba(0,255,200,0.2)}
+.toc a .num{
+  font-family:var(--mono);font-size:10px;
+  color:var(--cyan);opacity:0.5;min-width:32px;
+}
+@media(max-width:600px){.toc-grid{grid-template-columns:1fr}}
+
+/* ── Concept box ── */
+.concept-box{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:28px;
+  margin-bottom:28px;
+}
+.concept-box h2{
+  font-family:var(--mono);font-size:14px;
+  color:var(--cyan);margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;
+}
+.concept-box h2::before{
+  content:'';width:3px;height:16px;
+  background:var(--cyan);border-radius:2px;
+}
+
+/* ── Compare table ── */
+.compare-table{width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0}
+.compare-table th{
+  background:rgba(0,255,200,0.06);
+  color:var(--cyan);font-family:var(--mono);font-size:11px;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:10px 14px;text-align:left;
+  border-bottom:1px solid rgba(0,255,200,0.2);
+}
+.compare-table td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  vertical-align:top;
+}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table td:first-child{color:var(--muted);font-size:12px;width:30%}
+.compare-table td.ec2{color:#ffa060}
+.compare-table td.lambda{color:var(--cyan)}
+
+/* ── Services grid ── */
+.services-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
+.service-card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:6px;padding:14px;
+}
+.service-card .svc-name{
+  font-family:var(--mono);font-size:13px;font-weight:700;
+  margin-bottom:4px;
+}
+.service-card .svc-desc{font-size:12px;color:var(--muted)}
+.service-card .svc-free{
+  font-size:10px;font-family:var(--mono);
+  margin-top:6px;opacity:0.6;
+}
+.s-lambda .svc-name{color:var(--orange)}
+.s-dynamo .svc-name{color:var(--cyan)}
+.s-sns    .svc-name{color:var(--pink)}
+.s-cw     .svc-name{color:var(--yellow)}
+
+/* ── Architecture diagram ── */
+.arch-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:24px;font-family:var(--mono);
+  font-size:13px;color:var(--muted);margin:16px 0;
+  overflow-x:auto;
+}
+.arch-box .arch-title{
+  color:var(--cyan);font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:16px;
+}
+.arch-node{display:inline-block;padding:4px 12px;border-radius:3px;font-size:12px}
+.n-user  {background:rgba(255,224,58,0.1);color:var(--yellow);border:1px solid rgba(255,224,58,0.3)}
+.n-fn    {background:rgba(255,123,53,0.1);color:var(--orange);border:1px solid rgba(255,123,53,0.3)}
+.n-db    {background:rgba(0,255,200,0.08);color:var(--cyan);border:1px solid rgba(0,255,200,0.3)}
+.n-sns   {background:rgba(255,77,166,0.08);color:var(--pink);border:1px solid rgba(255,77,166,0.3)}
+.n-cw    {background:rgba(57,255,143,0.08);color:var(--green);border:1px solid rgba(57,255,143,0.3)}
+
+/* ── LAB card ── */
+.lab{
+  background:var(--bg2);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px;
+  margin-bottom:24px;
+  overflow:hidden;
+}
+.lab-header{
+  padding:16px 22px;
+  display:flex;align-items:center;gap:14px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  cursor:pointer;
+  user-select:none;
+}
+.lab-header:hover{background:rgba(255,255,255,0.02)}
+.lab-num{
+  font-family:var(--mono);font-size:11px;letter-spacing:1px;
+  padding:3px 9px;border-radius:3px;
+  font-weight:700;white-space:nowrap;
+}
+.lab-w3 .lab-num{background:rgba(0,255,200,0.1);color:var(--cyan);border:1px solid rgba(0,255,200,0.2)}
+.lab-w4 .lab-num{background:rgba(176,108,255,0.1);color:var(--purple);border:1px solid rgba(176,108,255,0.2)}
+.lab-title-text{font-size:15px;font-weight:600;flex:1}
+.lab-toggle{
+  font-family:var(--mono);font-size:18px;
+  color:var(--muted);transition:transform .3s;
+}
+.lab.open .lab-toggle{transform:rotate(180deg)}
+.lab-body{
+  display:none;padding:24px 26px;
+}
+.lab.open .lab-body{display:block}
+
+/* ── Step list ── */
+.steps{list-style:none;counter-reset:step}
+.steps>li{
+  counter-increment:step;
+  display:flex;gap:14px;
+  margin-bottom:16px;
+  align-items:flex-start;
+}
+.steps>li::before{
+  content:counter(step,'0'counter(step));
+  font-family:var(--mono);font-size:11px;
+  background:rgba(0,255,200,0.08);
+  color:var(--cyan);border:1px solid rgba(0,255,200,0.25);
+  min-width:30px;height:22px;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:1px;flex-shrink:0;
+}
+.steps>li.step-w4::before{
+  background:rgba(176,108,255,0.08);
+  color:var(--purple);border-color:rgba(176,108,255,0.25);
+}
+.steps>li .step-content{flex:1}
+
+/* ── Inline code / AWS buttons ── */
+kbd{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:4px;padding:1px 7px;
+  font-family:var(--mono);font-size:12px;
+  color:#e8e8e8;white-space:nowrap;
+}
+.btn-aws{
+  display:inline-block;
+  background:rgba(255,153,0,0.15);
+  border:1px solid rgba(255,153,0,0.4);
+  color:#ff9900;font-family:var(--mono);font-size:11px;
+  padding:2px 10px;border-radius:3px;
+  white-space:nowrap;
+}
+.nav-path{
+  display:flex;align-items:center;flex-wrap:wrap;gap:4px;
+  font-size:12px;margin:6px 0;
+}
+.nav-path .sep{color:var(--muted);font-family:var(--mono)}
+
+/* ── Config table ── */
+.cfg-table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+.cfg-table th{
+  background:rgba(255,255,255,0.04);
+  color:var(--muted);font-family:var(--mono);font-size:10px;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:8px 12px;text-align:left;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.cfg-table td{
+  padding:9px 12px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  vertical-align:top;
+}
+.cfg-table tr:last-child td{border-bottom:none}
+.cfg-table .field{color:var(--muted);font-family:var(--mono);font-size:12px;width:40%}
+.cfg-table .val{color:var(--cyan);font-family:var(--mono);font-size:12px}
+.cfg-table .desc{color:var(--text);font-size:12px}
+
+/* ── Policy tags ── */
+.policy-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.policy-tag{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:5px;padding:8px 12px;font-size:12px;
+}
+.policy-tag .icon{font-size:16px}
+.policy-tag .name{font-family:var(--mono);font-size:11px;color:var(--cyan)}
+.policy-tag .desc{color:var(--muted);font-size:11px}
+
+/* ── Code block ── */
+.code-wrap{
+  background:#080d18;
+  border:1px solid rgba(0,255,200,0.12);
+  border-radius:6px;
+  overflow:hidden;
+  margin:14px 0;
+}
+.code-header{
+  background:rgba(0,255,200,0.05);
+  border-bottom:1px solid rgba(0,255,200,0.1);
+  padding:7px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.code-lang{
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  color:var(--cyan);text-transform:uppercase;opacity:0.6;
+}
+.code-dots{display:flex;gap:5px}
+.code-dots span{width:8px;height:8px;border-radius:50%}
+.code-dots span:nth-child(1){background:#ff5f57}
+.code-dots span:nth-child(2){background:#febc2e}
+.code-dots span:nth-child(3){background:#28c840}
+pre{
+  padding:18px 20px;
+  overflow-x:auto;
+  font-family:var(--mono);font-size:12.5px;
+  line-height:1.65;color:#c8d8f0;
+}
+.hl-kw{color:#b06cff}
+.hl-fn{color:#4db8ff}
+.hl-str{color:#39ff8f}
+.hl-cmt{color:#3a5070;font-style:italic}
+.hl-num{color:#ffe03a}
+.hl-cls{color:#ff7b35}
+.hl-dec{color:var(--pink)}
+
+/* ── Test JSON block ── */
+.test-block{
+  background:#080d18;
+  border:1px solid rgba(255,224,58,0.15);
+  border-radius:6px;overflow:hidden;margin:12px 0;
+}
+.test-header{
+  background:rgba(255,224,58,0.05);
+  border-bottom:1px solid rgba(255,224,58,0.12);
+  padding:7px 14px;
+  display:flex;align-items:center;gap:8px;
+}
+.test-header .tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  color:var(--yellow);text-transform:uppercase;
+}
+.test-header .icon{font-size:12px}
+.test-block pre{color:#f0d88a}
+
+/* ── Call block ── */
+.curl-block{
+  background:#080d18;
+  border:1px solid rgba(77,184,255,0.15);
+  border-radius:6px;overflow:hidden;margin:12px 0;
+}
+.curl-header{
+  background:rgba(77,184,255,0.05);
+  border-bottom:1px solid rgba(77,184,255,0.12);
+  padding:7px 14px;font-family:var(--mono);font-size:10px;
+  letter-spacing:1px;color:var(--blue);text-transform:uppercase;
+}
+.curl-block pre{color:#aad4f0}
+
+/* ── Tip / Warning / Success boxes ── */
+.tip,.warn,.success-box,.info-box{
+  border-radius:6px;padding:12px 16px;
+  font-size:13px;margin:12px 0;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.tip{background:rgba(0,255,200,0.06);border:1px solid rgba(0,255,200,0.2)}
+.tip .icon{color:var(--cyan);flex-shrink:0}
+.warn{background:rgba(255,123,53,0.08);border:1px solid rgba(255,123,53,0.25)}
+.warn .icon{color:var(--orange);flex-shrink:0}
+.success-box{background:rgba(57,255,143,0.06);border:1px solid rgba(57,255,143,0.2)}
+.success-box .icon{color:var(--green);flex-shrink:0}
+.info-box{background:rgba(176,108,255,0.06);border:1px solid rgba(176,108,255,0.2)}
+.info-box .icon{color:var(--purple);flex-shrink:0}
+.cron-box{background:rgba(255,224,58,0.06);border:1px solid rgba(255,224,58,0.2)}
+.cron-box .icon{color:var(--yellow);flex-shrink:0}
+
+/* ── Section heading inside lab ── */
+.sub-h{
+  font-family:var(--mono);font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;margin:22px 0 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.sub-h::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}
+.sub-h.cyan{color:var(--cyan)}
+.sub-h.purple{color:var(--purple)}
+.sub-h.yellow{color:var(--yellow)}
+.sub-h.pink{color:var(--pink)}
+
+/* ── Exercises & Questions ── */
+.exercise-card{
+  background:var(--bg3);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:8px;padding:20px 22px;
+  margin-bottom:16px;
+}
+.exercise-card .ex-num{
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:10px;
+}
+.exercise-card.ex-w3 .ex-num{color:var(--cyan)}
+.exercise-card.ex-w4 .ex-num{color:var(--purple)}
+.exercise-card h4{font-size:14px;font-weight:600;margin-bottom:8px}
+.exercise-card p,.exercise-card ul{font-size:13.5px;color:var(--text)}
+.exercise-card ul{padding-left:18px;margin-top:6px}
+.exercise-card ul li{margin-bottom:4px}
+
+.q-list{list-style:none;counter-reset:q}
+.q-list li{
+  counter-increment:q;
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--bg3);border:1px solid rgba(255,255,255,0.06);
+  border-radius:6px;padding:14px 16px;margin-bottom:10px;
+}
+.q-list li::before{
+  content:counter(q);
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  min-width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.q-w3 li::before{background:rgba(0,255,200,0.1);color:var(--cyan)}
+.q-w4 li::before{background:rgba(176,108,255,0.1);color:var(--purple)}
+.q-list li .q-body{flex:1;font-size:13.5px}
+.q-list li .q-body strong{display:block;margin-bottom:3px;font-size:13px}
+.q-list li .q-body strong span{
+  display:inline-block;padding:1px 8px;border-radius:3px;
+  font-family:var(--mono);font-size:10px;margin-right:6px;
+}
+.q-w3 li .q-body strong span{background:rgba(0,255,200,0.1);color:var(--cyan)}
+.q-w4 li .q-body strong span{background:rgba(176,108,255,0.1);color:var(--purple)}
+
+/* ── Summary table ── */
+.summary-table{width:100%;border-collapse:collapse;font-size:13px}
+.summary-table th{
+  padding:10px 14px;text-align:left;
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.summary-table td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.summary-table tr:last-child td{border-bottom:none}
+.summary-table .week-cell{
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+}
+.summary-table .check{color:var(--green);font-size:12px}
+
+/* ── Cleanup ordered list ── */
+.cleanup-list{list-style:none;counter-reset:cl}
+.cleanup-list li{
+  counter-increment:cl;
+  display:flex;gap:12px;align-items:flex-start;
+  padding:10px 14px;margin-bottom:6px;
+  background:rgba(255,64,96,0.05);
+  border:1px solid rgba(255,64,96,0.12);
+  border-radius:5px;font-size:13px;
+}
+.cleanup-list li::before{
+  content:counter(cl);
+  font-family:var(--mono);font-size:11px;
+  background:rgba(255,64,96,0.15);color:var(--red);
+  min-width:24px;height:20px;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+/* ── Final summary cards ── */
+.final-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px}
+.final-card{
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.07);
+  border-radius:8px;padding:18px;
+}
+.final-card .fc-week{
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:10px;
+}
+.final-card .fc-items{list-style:none}
+.final-card .fc-items li{
+  font-size:12.5px;padding:4px 0;
+  display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.final-card .fc-items li:last-child{border-bottom:none}
+.final-card .fc-items li::before{content:'✓';font-size:11px}
+.fc-w1 .fc-week{color:#ff9900}
+.fc-w1 .fc-items li::before{color:#ff9900}
+.fc-w2 .fc-week{color:var(--blue)}
+.fc-w2 .fc-items li::before{color:var(--blue)}
+.fc-w3 .fc-week{color:var(--cyan)}
+.fc-w3 .fc-items li::before{color:var(--cyan)}
+.fc-w4 .fc-week{color:var(--purple)}
+.fc-w4 .fc-items li::before{color:var(--purple)}
+@media(max-width:600px){.final-grid{grid-template-columns:1fr}}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.lab,.concept-box,.toc,.exercise-card{animation:fadeUp .4s ease both}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-badge">ICT 24267 · Cloud Computing · ภาคการศึกษา 2/2568</div>
+  <h1>
+    <span class="w3">Week 3</span>
+    <span style="color:var(--muted)"> – </span>
+    <span class="w4">Week 4</span>
+  </h1>
+  <div style="font-size:22px;font-weight:700;color:var(--text);margin-top:4px">Serverless Computing บน AWS</div>
+  <div style="font-size:15px;color:var(--orange);font-family:var(--mono);margin-top:10px">
+    Mini Project: ICT Feedback System
+  </div>
+  <div class="hero-sub">ผู้สอน: <span>อาจารย์อำนาจ คงเจริญถิ่น</span> &nbsp;|&nbsp; แพลตฟอร์ม: <span>AWS Free Tier</span> &nbsp;|&nbsp; ภาษา: <span>Python 3.11</span></div>
+</div>
+
+<!-- ═══ TOC ═══ -->
+<div class="toc">
+  <div class="toc-title">📑 สารบัญ Week 3–4</div>
+  <div class="toc-grid">
+    <a href="#concept"><span class="num">00</span>Serverless คืออะไร?</a>
+    <a href="#overview"><span class="num">01</span>ภาพรวม Mini Project</a>
+    <a href="#lab31"><span class="num">3-1</span>สร้าง DynamoDB Table</a>
+    <a href="#lab32"><span class="num">3-2</span>สร้าง IAM Role</a>
+    <a href="#lab33"><span class="num">3-3</span>Lambda: บันทึก Feedback</a>
+    <a href="#lab34"><span class="num">3-4</span>Lambda: ดึง Feedback</a>
+    <a href="#lab35"><span class="num">3-5</span>เปิด Function URL</a>
+    <a href="#lab36"><span class="num">3-6</span>ทดสอบ API ครั้งแรก</a>
+    <a href="#ex3"><span class="num">✎</span>แบบฝึกหัด Week 3</a>
+    <a href="#q3"><span class="num">?</span>คำถามท้ายบท Week 3</a>
+    <a href="#lab41"><span class="num">4-1</span>Lambda + Scheduled Trigger</a>
+    <a href="#lab42"><span class="num">4-2</span>SNS Email แจ้งเตือน</a>
+    <a href="#lab43"><span class="num">4-3</span>CloudWatch Monitor</a>
+    <a href="#lab44"><span class="num">4-4</span>Frontend บน S3</a>
+    <a href="#lab45"><span class="num">4-5</span>Cleanup</a>
+    <a href="#ex4"><span class="num">✎</span>แบบฝึกหัด Week 4</a>
+    <a href="#q4"><span class="num">?</span>คำถามท้ายบท Week 4</a>
+    <a href="#summary"><span class="num">★</span>สรุป 4 สัปดาห์</a>
+  </div>
+</div>
+
+<!-- ═══ WEEK 3 DIVIDER ═══ -->
+<div class="week-divider w3-div">
+  <span class="label">⬡ Week 3 — Serverless &amp; Lambda</span>
+  <span class="line"></span>
+</div>
+
+<!-- ═══ CONCEPT ═══ -->
+<div class="concept-box" id="concept">
+  <h2>💡 Serverless คืออะไร? <span style="color:var(--muted);font-size:11px;font-weight:400;margin-left:8px">อ่านก่อนลงมือ</span></h2>
+
+  <p style="margin-bottom:16px">ก่อนเริ่ม LAB ขอให้ทำความเข้าใจ concept นี้ให้ชัดเจนก่อนครับ</p>
+
+  <table class="compare-table">
+    <tr>
+      <th></th>
+      <th>แบบเดิม (EC2)</th>
+      <th>Serverless (Lambda)</th>
+    </tr>
+    <tr>
+      <td>เปรียบเหมือน</td>
+      <td class="ec2">เช่าบ้านรายเดือน</td>
+      <td class="lambda">จ้างแม่บ้านรายครั้ง</td>
+    </tr>
+    <tr>
+      <td>จ่ายเงิน</td>
+      <td class="ec2">ตลอด 24 ชม. แม้ไม่มีคนใช้</td>
+      <td class="lambda">เฉพาะตอนมีคนใช้จริง</td>
+    </tr>
+    <tr>
+      <td>ดูแล Server</td>
+      <td class="ec2">ต้องดูแลเอง</td>
+      <td class="lambda">AWS ดูแลให้ทั้งหมด</td>
+    </tr>
+    <tr>
+      <td>รองรับคนเพิ่ม</td>
+      <td class="ec2">ต้องวางแผนล่วงหน้า</td>
+      <td class="lambda">ขยายตัวอัตโนมัติ</td>
+    </tr>
+    <tr>
+      <td>เหมาะกับ</td>
+      <td class="ec2">งานที่รันต่อเนื่อง</td>
+      <td class="lambda">งานที่รันตาม event</td>
+    </tr>
+  </table>
+
+  <div class="tip" style="margin-top:16px">
+    <span class="icon">🎯</span>
+    <span><strong style="color:var(--cyan)">สรุปสั้น:</strong> Serverless = เราเขียนแค่ "โค้ดที่ต้องการ" — AWS จัดการ Server ให้ทั้งหมด เราไม่ต้อง SSH, ไม่ต้อง restart, ไม่ต้อง update OS</span>
+  </div>
+
+  <div class="sub-h cyan" style="margin-top:20px">Services ที่ใช้ใน Week 3–4</div>
+  <div class="services-grid">
+    <div class="service-card s-lambda">
+      <div class="svc-name">⚡ AWS Lambda</div>
+      <div class="svc-desc">รันโค้ด Python เมื่อมี request เข้ามา</div>
+      <div class="svc-free">FREE: 1,000,000 ครั้ง/เดือน (ตลอดไป)</div>
+    </div>
+    <div class="service-card s-dynamo">
+      <div class="svc-name">🗄️ DynamoDB</div>
+      <div class="svc-desc">ฐานข้อมูล NoSQL ไม่ต้องมี Server</div>
+      <div class="svc-free">FREE: 25 GB ตลอดไป (Always Free)</div>
+    </div>
+    <div class="service-card s-sns">
+      <div class="svc-name">📧 Amazon SNS</div>
+      <div class="svc-desc">ส่ง Email แจ้งเตือนอัตโนมัติ</div>
+      <div class="svc-free">FREE: 1,000 emails/เดือน</div>
+    </div>
+    <div class="service-card s-cw">
+      <div class="svc-name">📊 CloudWatch</div>
+      <div class="svc-desc">ดู Log และ Monitor สุขภาพระบบ</div>
+      <div class="svc-free">FREE: Basic monitoring ตลอดไป</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROJECT OVERVIEW ═══ -->
+<div class="concept-box" id="overview">
+  <h2>🎯 ภาพรวม Mini Project: ICT Feedback System</h2>
+  <p style="margin-bottom:16px">เราจะสร้าง <strong style="color:var(--cyan)">ระบบรับ Feedback จากนักศึกษา</strong> แบบ Serverless ทั้งหมด — ไม่มี EC2, ไม่มี Server ที่ต้อง manage</p>
+
+  <div class="sub-h cyan">ระบบทำอะไรได้บ้าง?</div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+    <div style="display:flex;gap:12px;align-items:center;font-size:13.5px">
+      <span style="background:rgba(0,255,200,0.08);border:1px solid rgba(0,255,200,0.2);color:var(--cyan);font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;white-space:nowrap">POST</span>
+      <span>ส่ง Feedback พร้อมคะแนนความพึงพอใจ 1–5 ดาว</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;font-size:13.5px">
+      <span style="background:rgba(77,184,255,0.08);border:1px solid rgba(77,184,255,0.2);color:var(--blue);font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;white-space:nowrap">GET</span>
+      <span>ดึง Feedback ทั้งหมด กรองตามวิชาหรือ rating ได้</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;font-size:13.5px">
+      <span style="background:rgba(255,224,58,0.08);border:1px solid rgba(255,224,58,0.2);color:var(--yellow);font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;white-space:nowrap">CRON</span>
+      <span>สรุปสถิติอัตโนมัติทุกวัน 08:00 น. โดยไม่มีคนกด</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;font-size:13.5px">
+      <span style="background:rgba(255,77,166,0.08);border:1px solid rgba(255,77,166,0.2);color:var(--pink);font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;white-space:nowrap">SNS</span>
+      <span>ส่ง Email แจ้งเตือนทันทีเมื่อมี Feedback ใหม่เข้ามา</span>
+    </div>
+  </div>
+
+  <div class="sub-h cyan">Architecture ของระบบ</div>
+  <div class="arch-box">
+    <div class="arch-title">System Architecture</div>
+<pre style="background:transparent;padding:0;font-size:12px;color:var(--muted)">
+<span class="n-user"> นักศึกษา </span>
+    │  HTTP POST/GET
+    ▼
+<span class="n-fn"> Function URL </span>  ← URL สาธารณะ (ไม่ต้องใช้ API Gateway)
+    │
+    ├──▶ <span class="n-fn"> ict24267-submit-feedback </span>  → บันทึก + แจ้ง Email
+    ├──▶ <span class="n-fn"> ict24267-get-feedbacks   </span>  → ดึงข้อมูล
+    └──▶ <span class="n-fn"> ict24267-daily-summary   </span>  → สรุปรายวัน (อัตโนมัติ)
+              │                          │
+         <span class="n-db"> DynamoDB  </span>             <span class="n-sns"> SNS Email </span>
+         <span class="n-db"> ict24267- </span>
+         <span class="n-db"> feedbacks </span>
+              │
+         <span class="n-cw"> CloudWatch </span> (Log + Monitor)
+</pre>
+  </div>
+
+  <div class="sub-h cyan">ข้อมูล Feedback ที่เก็บใน DynamoDB</div>
+  <table class="cfg-table">
+    <tr><th>Field</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr>
+    <tr><td class="field">feedback_id</td><td>รหัส unique</td><td class="val">fb_a1b2c3d4e5</td></tr>
+    <tr><td class="field">student_name</td><td>ชื่อนักศึกษา</td><td class="val">สมชาย ใจดี</td></tr>
+    <tr><td class="field">course</td><td>รหัสวิชา</td><td class="val">ICT24267</td></tr>
+    <tr><td class="field">rating</td><td>คะแนน 1–5</td><td class="val">5</td></tr>
+    <tr><td class="field">comment</td><td>ความคิดเห็น</td><td class="val">สอนดีมาก เข้าใจง่าย</td></tr>
+    <tr><td class="field">timestamp</td><td>เวลาที่ส่ง</td><td class="val">2026-03-19T10:30:00</td></tr>
+  </table>
+</div>
+
+<!-- ═══ LAB 3-1 ═══ -->
+<div class="lab lab-w3 open" id="lab31">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 3-1</span>
+    <span class="lab-title-text">สร้าง DynamoDB Table — ฐานข้อมูล Serverless</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <div class="info-box">
+      <span class="icon">💜</span>
+      <div><strong style="color:var(--purple)">DynamoDB คืออะไร?</strong><br>
+      ฐานข้อมูล NoSQL ของ AWS ที่ไม่ต้องมี Server รัน 24 ชม. ต่างจาก MySQL (RDS) ที่ต้องจ่ายตลอดเวลา DynamoDB จ่ายเฉพาะตอนใช้งานจริง และ <strong style="color:var(--green)">ฟรี 25 GB ตลอดไป</strong></div>
+    </div>
+
+    <div class="sub-h cyan">ขั้นตอนสร้าง Table</div>
+    <ol class="steps">
+      <li><span class="step-content">
+        <div class="nav-path">
+          <kbd>AWS Console</kbd><span class="sep">→</span>
+          ค้นหา <kbd>DynamoDB</kbd><span class="sep">→</span>
+          คลิก <kbd>DynamoDB</kbd>
+        </div>
+      </span></li>
+      <li><span class="step-content">คลิกปุ่ม <span class="btn-aws">Create table</span> (สีส้ม)</span></li>
+      <li><span class="step-content">
+        <div style="margin-bottom:8px">กรอกข้อมูลตามนี้:</div>
+        <table class="cfg-table">
+          <tr><th>ช่อง</th><th>ค่าที่ต้องกรอก</th></tr>
+          <tr><td class="field">Table name</td><td class="val">ict24267-feedbacks</td></tr>
+          <tr><td class="field">Partition key</td><td class="val">feedback_id</td></tr>
+          <tr><td class="field">Partition key type</td><td class="val">String</td></tr>
+        </table>
+      </span></li>
+      <li><span class="step-content">ส่วน <kbd>Table settings</kbd> → เลือก <span class="btn-aws">Customize settings</span></span></li>
+      <li><span class="step-content">
+        ส่วน <kbd>Read/write capacity settings</kbd> → เลือก <strong style="color:var(--cyan)">On-demand</strong>
+        <div class="tip" style="margin-top:8px">
+          <span class="icon">✅</span>
+          <span>On-demand = จ่ายตามใช้จริง เหมาะกับ Free Tier ที่ traffic น้อย</span>
+        </div>
+      </span></li>
+      <li><span class="step-content">ส่วนอื่นๆ ใช้ค่า default ทั้งหมด → คลิก <span class="btn-aws">Create table</span></span></li>
+      <li><span class="step-content">รอสักครู่จนสถานะเปลี่ยนเป็น <strong style="color:var(--green)">Active ✅</strong></span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══ LAB 3-2 ═══ -->
+<div class="lab lab-w3" id="lab32">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 3-2</span>
+    <span class="lab-title-text">สร้าง IAM Role — ใบอนุญาตให้ Lambda</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <p style="margin-bottom:16px;font-size:13.5px">Lambda ต้องมี "ใบอนุญาต" ก่อนจึงจะเข้าถึง DynamoDB และ SNS ได้ — สร้างครั้งเดียว ใช้ได้ทุก Function</p>
+
+    <ol class="steps">
+      <li><span class="step-content">
+        <div class="nav-path">
+          <kbd>AWS Console</kbd><span class="sep">→</span>
+          <kbd>IAM</kbd><span class="sep">→</span>
+          <kbd>Roles</kbd><span class="sep">→</span>
+          <span class="btn-aws">Create role</span>
+        </div>
+      </span></li>
+      <li><span class="step-content">
+        Trusted entity: <kbd>AWS service</kbd> → Use case: <kbd>Lambda</kbd> → <span class="btn-aws">Next</span>
+      </span></li>
+      <li><span class="step-content">
+        <div style="margin-bottom:10px">ค้นหาและเพิ่ม <strong style="color:var(--cyan)">3 Policies</strong> นี้ทีละอัน:</div>
+        <div class="policy-row">
+          <div class="policy-tag">
+            <span class="icon">🗄️</span>
+            <div>
+              <div class="name">AmazonDynamoDBFullAccess</div>
+              <div class="desc">อ่าน/เขียน DynamoDB ได้</div>
+            </div>
+          </div>
+          <div class="policy-tag">
+            <span class="icon">📝</span>
+            <div>
+              <div class="name">AWSLambdaBasicExecutionRole</div>
+              <div class="desc">เขียน Log ลง CloudWatch ได้</div>
+            </div>
+          </div>
+          <div class="policy-tag">
+            <span class="icon">📧</span>
+            <div>
+              <div class="name">AmazonSNSFullAccess</div>
+              <div class="desc">ส่ง Email ผ่าน SNS ได้</div>
+            </div>
+          </div>
+        </div>
+        <div class="warn" style="margin-top:10px">
+          <span class="icon">⚠️</span>
+          <span>ในงานจริงควรจำกัด permission ให้แคบที่สุด แต่ในการเรียนใช้ FullAccess เพื่อความสะดวก</span>
+        </div>
+      </span></li>
+      <li><span class="step-content">
+        Role name: <kbd>ict24267-serverless-role</kbd> → <span class="btn-aws">Create role</span>
+      </span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══ LAB 3-3 ═══ -->
+<div class="lab lab-w3" id="lab33">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 3-3</span>
+    <span class="lab-title-text">Lambda Function แรก — บันทึก Feedback (POST)</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <p style="margin-bottom:16px;font-size:13.5px">Function นี้รับ JSON จากนักศึกษา ตรวจสอบข้อมูล แล้วบันทึกลง DynamoDB</p>
+
+    <div class="sub-h cyan">ขั้นตอนที่ 1 — สร้าง Function</div>
+    <ol class="steps">
+      <li><span class="step-content">
+        <div class="nav-path"><kbd>Lambda</kbd><span class="sep">→</span><span class="btn-aws">Create function</span></div>
+      </span></li>
+      <li><span class="step-content">
+        <table class="cfg-table">
+          <tr><th>ช่อง</th><th>ค่า</th></tr>
+          <tr><td class="field">Function name</td><td class="val">ict24267-submit-feedback</td></tr>
+          <tr><td class="field">Runtime</td><td class="val">Python 3.11</td></tr>
+          <tr><td class="field">Architecture</td><td class="val">x86_64</td></tr>
+        </table>
+      </span></li>
+      <li><span class="step-content">Permissions → <kbd>Change default execution role</kbd> → <kbd>Use an existing role</kbd> → <kbd>ict24267-serverless-role</kbd></span></li>
+      <li><span class="step-content">คลิก <span class="btn-aws">Create function</span></span></li>
+    </ol>
+
+    <div class="sub-h cyan">ขั้นตอนที่ 2 — วาง Code</div>
+    <p style="font-size:13.5px;margin-bottom:10px">คลิกที่ไฟล์ <kbd>lambda_function.py</kbd> → <strong style="color:var(--red)">ลบทั้งหมด</strong> → <strong style="color:var(--green)">วาง code นี้</strong>:</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">python · ict24267-submit-feedback</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="hl-kw">import</span> json
+<span class="hl-kw">import</span> boto3
+<span class="hl-kw">import</span> uuid
+<span class="hl-kw">from</span> datetime <span class="hl-kw">import</span> datetime
+
+<span class="hl-cmt"># สร้าง DynamoDB client</span>
+dynamodb = boto3.<span class="hl-fn">resource</span>(<span class="hl-str">'dynamodb'</span>, region_name=<span class="hl-str">'ap-southeast-1'</span>)
+table = dynamodb.<span class="hl-fn">Table</span>(<span class="hl-str">'ict24267-feedbacks'</span>)
+
+<span class="hl-kw">def</span> <span class="hl-fn">lambda_handler</span>(event, context):
+    <span class="hl-cmt"># Handle CORS preflight (browser ส่ง OPTIONS มาก่อนเสมอ)</span>
+    <span class="hl-kw">if</span> event.<span class="hl-fn">get</span>(<span class="hl-str">'requestContext'</span>, {}).<span class="hl-fn">get</span>(<span class="hl-str">'http'</span>, {}).<span class="hl-fn">get</span>(<span class="hl-str">'method'</span>) == <span class="hl-str">'OPTIONS'</span>:
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">200</span>, {})
+
+    <span class="hl-kw">try</span>:
+        <span class="hl-cmt"># แปลง JSON string เป็น dictionary</span>
+        <span class="hl-kw">if</span> <span class="hl-fn">isinstance</span>(event.<span class="hl-fn">get</span>(<span class="hl-str">'body'</span>), str):
+            body = json.<span class="hl-fn">loads</span>(event[<span class="hl-str">'body'</span>])
+        <span class="hl-kw">else</span>:
+            body = event.<span class="hl-fn">get</span>(<span class="hl-str">'body'</span>, {})
+
+        <span class="hl-cmt"># ตรวจสอบ field ที่จำเป็น</span>
+        required = [<span class="hl-str">'student_name'</span>, <span class="hl-str">'course'</span>, <span class="hl-str">'rating'</span>]
+        <span class="hl-kw">for</span> field <span class="hl-kw">in</span> required:
+            <span class="hl-kw">if not</span> body.<span class="hl-fn">get</span>(field):
+                <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">400</span>, {
+                    <span class="hl-str">'status'</span>: <span class="hl-str">'error'</span>,
+                    <span class="hl-str">'message'</span>: f<span class="hl-str">'กรุณากรอก {field}'</span>
+                })
+
+        <span class="hl-cmt"># ตรวจสอบว่า rating อยู่ระหว่าง 1-5</span>
+        rating = <span class="hl-fn">int</span>(body[<span class="hl-str">'rating'</span>])
+        <span class="hl-kw">if</span> rating &lt; <span class="hl-num">1</span> <span class="hl-kw">or</span> rating &gt; <span class="hl-num">5</span>:
+            <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">400</span>, {
+                <span class="hl-str">'status'</span>: <span class="hl-str">'error'</span>,
+                <span class="hl-str">'message'</span>: <span class="hl-str">'rating ต้องอยู่ระหว่าง 1-5'</span>
+            })
+
+        <span class="hl-cmt"># สร้าง feedback_id และบันทึกลง DynamoDB</span>
+        feedback_id = f<span class="hl-str">"fb_{uuid.uuid4().hex[:10]}"</span>
+        item = {
+            <span class="hl-str">'feedback_id'</span>:  feedback_id,
+            <span class="hl-str">'student_name'</span>: body[<span class="hl-str">'student_name'</span>],
+            <span class="hl-str">'course'</span>:       body[<span class="hl-str">'course'</span>],
+            <span class="hl-str">'rating'</span>:       rating,
+            <span class="hl-str">'comment'</span>:      body.<span class="hl-fn">get</span>(<span class="hl-str">'comment'</span>, <span class="hl-str">''</span>),
+            <span class="hl-str">'timestamp'</span>:    datetime.<span class="hl-fn">now</span>().<span class="hl-fn">isoformat</span>()
+        }
+        table.<span class="hl-fn">put_item</span>(Item=item)
+
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">201</span>, {
+            <span class="hl-str">'status'</span>:      <span class="hl-str">'success'</span>,
+            <span class="hl-str">'message'</span>:     <span class="hl-str">'บันทึก Feedback แล้ว ขอบคุณ! 🎉'</span>,
+            <span class="hl-str">'feedback_id'</span>: feedback_id
+        })
+
+    <span class="hl-kw">except</span> <span class="hl-cls">Exception</span> <span class="hl-kw">as</span> e:
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">500</span>, {<span class="hl-str">'status'</span>: <span class="hl-str">'error'</span>, <span class="hl-str">'message'</span>: <span class="hl-fn">str</span>(e)})
+
+
+<span class="hl-kw">def</span> <span class="hl-fn">cors_response</span>(status_code, body):
+    <span class="hl-kw">return</span> {
+        <span class="hl-str">'statusCode'</span>: status_code,
+        <span class="hl-str">'headers'</span>: {
+            <span class="hl-str">'Content-Type'</span>: <span class="hl-str">'application/json; charset=utf-8'</span>,
+            <span class="hl-str">'Access-Control-Allow-Origin'</span>: <span class="hl-str">'*'</span>,
+            <span class="hl-str">'Access-Control-Allow-Methods'</span>: <span class="hl-str">'GET,POST,OPTIONS'</span>,
+            <span class="hl-str">'Access-Control-Allow-Headers'</span>: <span class="hl-str">'Content-Type'</span>
+        },
+        <span class="hl-str">'body'</span>: json.<span class="hl-fn">dumps</span>(body, ensure_ascii=<span class="hl-cls">False</span>)
+    }</pre>
+    </div>
+
+    <div class="success-box"><span class="icon">✅</span><span>หลังวาง code → คลิกปุ่ม <span class="btn-aws">Deploy</span> (สีส้ม มุมขวาบน)</span></div>
+
+    <div class="sub-h cyan">ขั้นตอนที่ 3 — ทดสอบ Function</div>
+    <ol class="steps">
+      <li><span class="step-content">แท็บ <kbd>Test</kbd> → <span class="btn-aws">Create new event</span> → ตั้งชื่อ <kbd>test-submit</kbd></span></li>
+      <li><span class="step-content">
+        แทนที่ JSON ทั้งหมดด้วย:
+        <div class="test-block">
+          <div class="test-header"><span class="icon">🧪</span><span class="tag">Test Event JSON</span></div>
+          <pre>{
+  "body": "{\"student_name\": \"สมชาย ใจดี\", \"course\": \"ICT24267\", \"rating\": 5, \"comment\": \"สอนดีมากครับ เข้าใจง่าย\"}"
+}</pre>
+        </div>
+      </span></li>
+      <li><span class="step-content">คลิก <span class="btn-aws">Test</span> → ✅ ควรเห็น <kbd>"status": "success"</kbd> และ <kbd>"feedback_id": "fb_..."</kbd></span></li>
+      <li><span class="step-content">
+        ไปตรวจสอบใน DynamoDB:
+        <div class="nav-path">
+          <kbd>DynamoDB</kbd><span class="sep">→</span>
+          <kbd>Tables</kbd><span class="sep">→</span>
+          <kbd>ict24267-feedbacks</kbd><span class="sep">→</span>
+          <span class="btn-aws">Explore table items</span>
+        </div>
+        <div class="success-box" style="margin-top:8px"><span class="icon">✅</span><span>ควรเห็น item ที่เพิ่งบันทึก — นั่นคือข้อมูลอยู่ใน DynamoDB จริงแล้ว!</span></div>
+      </span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══ LAB 3-4 ═══ -->
+<div class="lab lab-w3" id="lab34">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 3-4</span>
+    <span class="lab-title-text">Lambda Function ที่สอง — ดึง Feedback (GET)</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <p style="margin-bottom:16px;font-size:13.5px">Function นี้ดึง feedback จาก DynamoDB รองรับการกรองตามวิชาและ rating</p>
+
+    <div class="sub-h cyan">ขั้นตอนที่ 1 — สร้าง Function</div>
+    <ol class="steps">
+      <li><span class="step-content">
+        <div class="nav-path"><kbd>Lambda</kbd><span class="sep">→</span><span class="btn-aws">Create function</span></div>
+        <table class="cfg-table" style="margin-top:8px">
+          <tr><td class="field">Function name</td><td class="val">ict24267-get-feedbacks</td></tr>
+          <tr><td class="field">Runtime</td><td class="val">Python 3.11</td></tr>
+          <tr><td class="field">Execution role</td><td class="val">ict24267-serverless-role</td></tr>
+        </table>
+      </span></li>
+      <li><span class="step-content">คลิก <span class="btn-aws">Create function</span></span></li>
+    </ol>
+
+    <div class="sub-h cyan">ขั้นตอนที่ 2 — วาง Code</div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">python · ict24267-get-feedbacks</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="hl-kw">import</span> json
+<span class="hl-kw">import</span> boto3
+<span class="hl-kw">from</span> boto3.dynamodb.conditions <span class="hl-kw">import</span> Attr
+
+dynamodb = boto3.<span class="hl-fn">resource</span>(<span class="hl-str">'dynamodb'</span>, region_name=<span class="hl-str">'ap-southeast-1'</span>)
+table = dynamodb.<span class="hl-fn">Table</span>(<span class="hl-str">'ict24267-feedbacks'</span>)
+
+<span class="hl-kw">def</span> <span class="hl-fn">lambda_handler</span>(event, context):
+    <span class="hl-kw">if</span> event.<span class="hl-fn">get</span>(<span class="hl-str">'requestContext'</span>, {}).<span class="hl-fn">get</span>(<span class="hl-str">'http'</span>, {}).<span class="hl-fn">get</span>(<span class="hl-str">'method'</span>) == <span class="hl-str">'OPTIONS'</span>:
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">200</span>, {})
+
+    <span class="hl-kw">try</span>:
+        params = event.<span class="hl-fn">get</span>(<span class="hl-str">'queryStringParameters'</span>) <span class="hl-kw">or</span> {}
+        course = params.<span class="hl-fn">get</span>(<span class="hl-str">'course'</span>)
+        rating = params.<span class="hl-fn">get</span>(<span class="hl-str">'rating'</span>)
+
+        <span class="hl-kw">if</span> course <span class="hl-kw">or</span> rating:
+            filter_expr = <span class="hl-cls">None</span>
+            <span class="hl-kw">if</span> course:
+                filter_expr = <span class="hl-cls">Attr</span>(<span class="hl-str">'course'</span>).<span class="hl-fn">eq</span>(course)
+            <span class="hl-kw">if</span> rating:
+                rf = <span class="hl-cls">Attr</span>(<span class="hl-str">'rating'</span>).<span class="hl-fn">eq</span>(<span class="hl-fn">int</span>(rating))
+                filter_expr = filter_expr &amp; rf <span class="hl-kw">if</span> filter_expr <span class="hl-kw">else</span> rf
+            response = table.<span class="hl-fn">scan</span>(FilterExpression=filter_expr)
+        <span class="hl-kw">else</span>:
+            response = table.<span class="hl-fn">scan</span>()
+
+        feedbacks = response.<span class="hl-fn">get</span>(<span class="hl-str">'Items'</span>, [])
+        feedbacks.<span class="hl-fn">sort</span>(key=<span class="hl-kw">lambda</span> x: x.<span class="hl-fn">get</span>(<span class="hl-str">'timestamp'</span>, <span class="hl-str">''</span>), reverse=<span class="hl-cls">True</span>)
+
+        avg_rating = <span class="hl-num">0</span>
+        <span class="hl-kw">if</span> feedbacks:
+            avg_rating = <span class="hl-fn">round</span>(<span class="hl-fn">sum</span>(<span class="hl-fn">int</span>(f.<span class="hl-fn">get</span>(<span class="hl-str">'rating'</span>, <span class="hl-num">0</span>)) <span class="hl-kw">for</span> f <span class="hl-kw">in</span> feedbacks) / <span class="hl-fn">len</span>(feedbacks), <span class="hl-num">2</span>)
+
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">200</span>, {
+            <span class="hl-str">'status'</span>: <span class="hl-str">'success'</span>,
+            <span class="hl-str">'count'</span>: <span class="hl-fn">len</span>(feedbacks),
+            <span class="hl-str">'average_rating'</span>: avg_rating,
+            <span class="hl-str">'data'</span>: feedbacks
+        })
+
+    <span class="hl-kw">except</span> <span class="hl-cls">Exception</span> <span class="hl-kw">as</span> e:
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">500</span>, {<span class="hl-str">'status'</span>: <span class="hl-str">'error'</span>, <span class="hl-str">'message'</span>: <span class="hl-fn">str</span>(e)})
+
+
+<span class="hl-kw">def</span> <span class="hl-fn">cors_response</span>(status_code, body):
+    <span class="hl-kw">return</span> {
+        <span class="hl-str">'statusCode'</span>: status_code,
+        <span class="hl-str">'headers'</span>: {
+            <span class="hl-str">'Content-Type'</span>: <span class="hl-str">'application/json; charset=utf-8'</span>,
+            <span class="hl-str">'Access-Control-Allow-Origin'</span>: <span class="hl-str">'*'</span>
+        },
+        <span class="hl-str">'body'</span>: json.<span class="hl-fn">dumps</span>(body, ensure_ascii=<span class="hl-cls">False</span>, default=<span class="hl-fn">str</span>)
+    }</pre>
+    </div>
+    <div class="success-box"><span class="icon">✅</span><span>คลิก <span class="btn-aws">Deploy</span></span></div>
+
+    <div class="sub-h cyan">ขั้นตอนที่ 3 — ทดสอบ</div>
+    <div class="test-block">
+      <div class="test-header"><span class="icon">🧪</span><span class="tag">Test Event: test-get</span></div>
+      <pre>{ "queryStringParameters": null }</pre>
+    </div>
+    <div class="success-box"><span class="icon">✅</span><span>คลิก <span class="btn-aws">Test</span> → ควรเห็น feedback ที่บันทึกไว้ใน LAB 3-3</span></div>
+  </div>
+</div>
+
+<!-- ═══ LAB 3-5 ═══ -->
+<div class="lab lab-w3" id="lab35">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 3-5</span>
+    <span class="lab-title-text">เปิด API ด้วย Function URL</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <div class="tip">
+      <span class="icon">💡</span>
+      <span><strong style="color:var(--cyan)">Function URL vs API Gateway:</strong> Function URL ง่ายกว่า ตั้งค่า 4 click เหมาะกับ project เล็กๆ / API Gateway ยืดหยุ่นกว่า เหมาะกับ production ขนาดใหญ่</span>
+    </div>
+
+    <div class="sub-h cyan" style="margin-top:16px">ทำกับ Function แรก: ict24267-submit-feedback</div>
+    <ol class="steps">
+      <li><span class="step-content">เปิด Lambda Function <kbd>ict24267-submit-feedback</kbd></span></li>
+      <li><span class="step-content">
+        <div class="nav-path">
+          แท็บ <kbd>Configuration</kbd><span class="sep">→</span>
+          เมนูซ้าย <kbd>Function URL</kbd><span class="sep">→</span>
+          <span class="btn-aws">Create function URL</span>
+        </div>
+      </span></li>
+      <li><span class="step-content">
+        Auth type: <kbd>NONE</kbd> &nbsp;+&nbsp; ✅ ติ๊ก <kbd>Configure cross-origin resource sharing (CORS)</kbd>
+      </span></li>
+      <li><span class="step-content">คลิก <span class="btn-aws">Save</span></span></li>
+      <li><span class="step-content">
+        <div class="success-box">
+          <span class="icon">✅</span>
+          <span><strong>บันทึก Function URL ไว้!</strong> เช่น <kbd>https://abcdefgh.lambda-url.ap-southeast-1.on.aws/</kbd><br>จะใช้ใน LAB 4-4</span>
+        </div>
+      </span></li>
+    </ol>
+
+    <div class="sub-h cyan">ทำซ้ำกับ Function ที่สอง: ict24267-get-feedbacks</div>
+    <p style="font-size:13.5px">ทำขั้นตอนเดิมทั้งหมดกับ <kbd>ict24267-get-feedbacks</kbd> แล้วบันทึก URL ที่ได้ด้วย</p>
+  </div>
+</div>
+
+<!-- ═══ LAB 3-6 ═══ -->
+<div class="lab lab-w3" id="lab36">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 3-6</span>
+    <span class="lab-title-text">ทดสอบ API ครั้งแรก 🚀</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <div class="success-box" style="margin-bottom:16px">
+      <span class="icon">🚀</span>
+      <span><strong>ตอนนี้มี API ที่ทำงานได้จริงบน Internet แล้ว!</strong> ลองทดสอบได้เลย</span>
+    </div>
+
+    <div class="sub-h cyan">ทดสอบผ่าน Browser (GET)</div>
+    <p style="font-size:13.5px;margin-bottom:8px">วาง URL ของ <kbd>ict24267-get-feedbacks</kbd> ใน browser โดยตรง → ควรเห็น JSON รายการ feedback</p>
+
+    <div class="sub-h cyan">ทดสอบผ่าน curl</div>
+    <p style="font-size:13.5px;margin-bottom:8px">แทนที่ <kbd>YOUR_SUBMIT_URL</kbd> และ <kbd>YOUR_GET_URL</kbd> ด้วย Function URL จริง:</p>
+    <div class="curl-block">
+      <div class="curl-header">bash · curl commands</div>
+      <pre># ส่ง feedback ใหม่
+curl -X POST YOUR_SUBMIT_URL \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_name": "สมหญิง รักเรียน",
+    "course": "ICT24267",
+    "rating": 4,
+    "comment": "เนื้อหาครบถ้วน อยากให้มี lab เพิ่มอีกครับ"
+  }'
+
+# ดู feedback ทั้งหมด
+curl YOUR_GET_URL
+
+# กรองเฉพาะวิชา ICT24267
+curl "YOUR_GET_URL?course=ICT24267"
+
+# กรองเฉพาะ rating 5 ดาว
+curl "YOUR_GET_URL?rating=5"</pre>
+    </div>
+
+    <div class="sub-h cyan">ทดสอบผ่าน AWS Console (ไม่ต้องใช้ curl)</div>
+    <p style="font-size:13.5px;margin-bottom:8px">Lambda → <kbd>ict24267-submit-feedback</kbd> → แท็บ <kbd>Test</kbd> → สร้าง test events เพิ่มเติม:</p>
+    <div class="test-block">
+      <div class="test-header"><span class="icon">🧪</span><span class="tag">Test Event ที่ 2</span></div>
+      <pre>{ "body": "{\"student_name\": \"วิไล มีแววดี\", \"course\": \"ICT24267\", \"rating\": 3, \"comment\": \"ยากเกินไปหน่อย แต่อาจารย์สอนดี\"}" }</pre>
+    </div>
+    <div class="test-block">
+      <div class="test-header"><span class="icon">🧪</span><span class="tag">Test Event ที่ 3</span></div>
+      <pre>{ "body": "{\"student_name\": \"ประสิทธิ์ เรียนเก่ง\", \"course\": \"ICT24267\", \"rating\": 5, \"comment\": \"ชอบมาก ได้ความรู้เยอะ\"}" }</pre>
+    </div>
+    <div class="tip">
+      <span class="icon">✅</span>
+      <span>หลัง test → ไปดูใน DynamoDB → <kbd>Explore table items</kbd> เพื่อยืนยันว่าข้อมูลเข้า</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXERCISES W3 ═══ -->
+<div id="ex3" style="margin-top:32px">
+  <div class="sub-h cyan" style="font-size:13px;letter-spacing:3px">📝 แบบฝึกหัด Week 3</div>
+  <div class="exercise-card ex-w3">
+    <div class="ex-num">แบบฝึกหัดที่ 1</div>
+    <h4>เพิ่ม Validation ให้แน่นขึ้น</h4>
+    <p>แก้ไข <kbd>ict24267-submit-feedback</kbd> ให้ตรวจสอบเพิ่มเติม:</p>
+    <ul>
+      <li><kbd>student_name</kbd> ต้องมีความยาวอย่างน้อย 2 ตัวอักษร</li>
+      <li><kbd>comment</kbd> ถ้ากรอกมา ต้องมีความยาวไม่เกิน 500 ตัวอักษร</li>
+    </ul>
+    <div style="margin-top:8px;font-size:12px;color:var(--muted)">เพิ่ม code ตรงส่วน "ตรวจสอบ field ที่จำเป็น" แล้ว Deploy ใหม่</div>
+  </div>
+  <div class="exercise-card ex-w3">
+    <div class="ex-num">แบบฝึกหัดที่ 2</div>
+    <h4>ทดสอบ Error Cases</h4>
+    <p>ทดสอบส่ง request ที่ผิดพลาดแล้วบันทึกผลลัพธ์:</p>
+    <table class="cfg-table" style="margin-top:10px">
+      <tr><th>กรณีทดสอบ</th><th>ผลลัพธ์ที่คาดหวัง</th></tr>
+      <tr><td>ไม่ส่ง <kbd>student_name</kbd></td><td>status: error + message บอก field ที่ขาด</td></tr>
+      <tr><td><kbd>rating</kbd> เป็น 6</td><td>status: error + message rating ไม่ถูกต้อง</td></tr>
+      <tr><td><kbd>rating</kbd> เป็น "abc"</td><td>เกิด error อะไร? (ลองดู)</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ QUESTIONS W3 ═══ -->
+<div id="q3" style="margin-top:24px">
+  <div class="sub-h cyan" style="font-size:13px;letter-spacing:3px">🗒️ คำถามท้ายบท Week 3</div>
+  <ul class="q-list q-w3">
+    <li><div class="q-body"><strong><span>Serverless vs Traditional</span></strong>ถ้าระบบมีคนใช้งาน 1,000 คน/วัน แต่กระจุกตัวในช่วง 9:00–17:00 น. ควรใช้ EC2 หรือ Lambda? เพราะอะไร?</div></li>
+    <li><div class="q-body"><strong><span>DynamoDB vs RDS</span></strong>เปรียบเทียบ DynamoDB (Week 3) กับ MySQL บน RDS (Week 2) ในแง่ของ: โครงสร้างข้อมูล, การ query, ค่าใช้จ่าย และความเหมาะสมกับงานแต่ละประเภท</div></li>
+    <li><div class="q-body"><strong><span>Function URL vs API Gateway</span></strong>อธิบายข้อดีข้อเสียของแต่ละแบบ และสถานการณ์ใดควรใช้อะไร?</div></li>
+    <li><div class="q-body"><strong><span>Cold Start</span></strong>เมื่อกด Test ครั้งแรกหลังสร้าง Lambda ใหม่ มักช้ากว่าครั้งถัดไป เรียกว่า "Cold Start" — เกิดจากอะไร และมีผลต่อ User Experience อย่างไร?</div></li>
+    <li><div class="q-body"><strong><span>IAM Role</span></strong>เราให้ <kbd>AmazonDynamoDBFullAccess</kbd> แก่ Lambda แต่จริงๆ Function นี้ต้องการ permission อะไรบ้าง? การให้เกินความจำเป็นมีความเสี่ยงอะไร?</div></li>
+  </ul>
+</div>
+
+<!-- ═══ WEEK 4 DIVIDER ═══ -->
+<div class="week-divider w4-div" style="margin-top:56px">
+  <span class="label">⬡ Week 4 — Automation, Monitoring &amp; Frontend</span>
+  <span class="line"></span>
+</div>
+
+<!-- Week 4 overview -->
+<div class="concept-box">
+  <h2 style="color:var(--purple)">🎯 ภาพรวม Week 4</h2>
+  <p style="margin-bottom:16px;font-size:13.5px">สัปดาห์นี้จะ <strong style="color:var(--purple)">เพิ่มความสามารถ</strong> ให้ระบบ Feedback โดยไม่ต้องเขียน Server เพิ่มเลย</p>
+  <table class="compare-table">
+    <tr>
+      <th>Week 3 (ที่ทำแล้ว)</th>
+      <th>Week 4 (จะเพิ่ม)</th>
+    </tr>
+    <tr>
+      <td><span style="color:var(--green)">✅</span> submit-feedback</td>
+      <td class="lambda">+ แจ้ง Email ทันทีเมื่อมี feedback ใหม่</td>
+    </tr>
+    <tr>
+      <td><span style="color:var(--green)">✅</span> get-feedbacks</td>
+      <td class="lambda">+ สรุปสถิติอัตโนมัติทุกเช้า</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td class="lambda">+ หน้าเว็บสำหรับส่ง feedback</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td class="lambda">+ Dashboard ดูสุขภาพระบบ</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══ LAB 4-1 ═══ -->
+<div class="lab lab-w4" id="lab41">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 4-1</span>
+    <span class="lab-title-text">Lambda สรุปสถิติ + Scheduled Trigger</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <div class="info-box">
+      <span class="icon">💜</span>
+      <div><strong style="color:var(--purple)">Scheduled Trigger คืออะไร?</strong><br>
+      คือการตั้งเวลาให้ Lambda รันเองอัตโนมัติ เหมือน Cron Job แต่ไม่ต้องมี Server — Function จะ "ตื่น" รันเสร็จแล้ว "หลับ" ต่อ โดยไม่มีคนกด</div>
+    </div>
+
+    <div class="sub-h purple">ขั้นตอนที่ 1 — สร้าง Function</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">
+        <div class="nav-path"><kbd>Lambda</kbd><span class="sep">→</span><span class="btn-aws">Create function</span></div>
+        <table class="cfg-table" style="margin-top:8px">
+          <tr><td class="field">Function name</td><td class="val">ict24267-daily-summary</td></tr>
+          <tr><td class="field">Runtime</td><td class="val">Python 3.11</td></tr>
+          <tr><td class="field">Execution role</td><td class="val">ict24267-serverless-role</td></tr>
+        </table>
+      </span></li>
+      <li class="step-w4"><span class="step-content">คลิก <span class="btn-aws">Create function</span></span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 2 — วาง Code</div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">python · ict24267-daily-summary</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="hl-kw">import</span> json
+<span class="hl-kw">import</span> boto3
+<span class="hl-kw">from</span> datetime <span class="hl-kw">import</span> datetime, date
+<span class="hl-kw">from</span> boto3.dynamodb.conditions <span class="hl-kw">import</span> Attr
+<span class="hl-kw">from</span> decimal <span class="hl-kw">import</span> Decimal
+
+dynamodb = boto3.<span class="hl-fn">resource</span>(<span class="hl-str">'dynamodb'</span>, region_name=<span class="hl-str">'ap-southeast-1'</span>)
+table = dynamodb.<span class="hl-fn">Table</span>(<span class="hl-str">'ict24267-feedbacks'</span>)
+
+<span class="hl-kw">def</span> <span class="hl-fn">lambda_handler</span>(event, context):
+    <span class="hl-fn">print</span>(<span class="hl-str">"🔄 เริ่มสรุปสถิติประจำวัน..."</span>)
+    <span class="hl-kw">try</span>:
+        response = table.<span class="hl-fn">scan</span>()
+        all_feedbacks = response.<span class="hl-fn">get</span>(<span class="hl-str">'Items'</span>, [])
+
+        <span class="hl-kw">if not</span> all_feedbacks:
+            <span class="hl-fn">print</span>(<span class="hl-str">"ℹ️ ยังไม่มี feedback"</span>)
+            <span class="hl-kw">return</span> {<span class="hl-str">'statusCode'</span>: <span class="hl-num">200</span>, <span class="hl-str">'body'</span>: <span class="hl-str">'ไม่มีข้อมูล feedback'</span>}
+
+        total      = <span class="hl-fn">len</span>(all_feedbacks)
+        ratings    = [<span class="hl-fn">int</span>(f.<span class="hl-fn">get</span>(<span class="hl-str">'rating'</span>, <span class="hl-num">0</span>)) <span class="hl-kw">for</span> f <span class="hl-kw">in</span> all_feedbacks]
+        avg_rating = <span class="hl-fn">round</span>(<span class="hl-fn">sum</span>(ratings) / total, <span class="hl-num">2</span>)
+        rating_dist = {<span class="hl-fn">str</span>(i): ratings.<span class="hl-fn">count</span>(i) <span class="hl-kw">for</span> i <span class="hl-kw">in</span> <span class="hl-fn">range</span>(<span class="hl-num">1</span>, <span class="hl-num">6</span>)}
+
+        course_dist = {}
+        <span class="hl-kw">for</span> f <span class="hl-kw">in</span> all_feedbacks:
+            course = f.<span class="hl-fn">get</span>(<span class="hl-str">'course'</span>, <span class="hl-str">'ไม่ระบุ'</span>)
+            course_dist[course] = course_dist.<span class="hl-fn">get</span>(course, <span class="hl-num">0</span>) + <span class="hl-num">1</span>
+
+        sorted_fb = <span class="hl-fn">sorted</span>(all_feedbacks,
+                           key=<span class="hl-kw">lambda</span> x: x.<span class="hl-fn">get</span>(<span class="hl-str">'timestamp'</span>, <span class="hl-str">''</span>), reverse=<span class="hl-cls">True</span>)
+        recent = [{
+            <span class="hl-str">'student'</span>: f.<span class="hl-fn">get</span>(<span class="hl-str">'student_name'</span>), <span class="hl-str">'course'</span>: f.<span class="hl-fn">get</span>(<span class="hl-str">'course'</span>),
+            <span class="hl-str">'rating'</span>: <span class="hl-fn">int</span>(f.<span class="hl-fn">get</span>(<span class="hl-str">'rating'</span>, <span class="hl-num">0</span>)), <span class="hl-str">'comment'</span>: f.<span class="hl-fn">get</span>(<span class="hl-str">'comment'</span>, <span class="hl-str">''</span>)[:<span class="hl-num">50</span>]
+        } <span class="hl-kw">for</span> f <span class="hl-kw">in</span> sorted_fb[:<span class="hl-num">3</span>]]
+
+        summary = {
+            <span class="hl-str">'report_date'</span>:         <span class="hl-fn">str</span>(date.<span class="hl-fn">today</span>()),
+            <span class="hl-str">'total_feedbacks'</span>:     total,
+            <span class="hl-str">'average_rating'</span>:      avg_rating,
+            <span class="hl-str">'rating_distribution'</span>: rating_dist,
+            <span class="hl-str">'by_course'</span>:           course_dist,
+            <span class="hl-str">'recent_3'</span>:            recent
+        }
+
+        <span class="hl-fn">print</span>(f<span class="hl-str">"📊 วันที่: {summary['report_date']}"</span>)
+        <span class="hl-fn">print</span>(f<span class="hl-str">"   รวม feedback : {total} รายการ"</span>)
+        <span class="hl-fn">print</span>(f<span class="hl-str">"   คะแนนเฉลี่ย  : {avg_rating} / 5"</span>)
+        <span class="hl-fn">print</span>(<span class="hl-str">"✅ สรุปสถิติเสร็จแล้ว"</span>)
+
+        <span class="hl-kw">return</span> {
+            <span class="hl-str">'statusCode'</span>: <span class="hl-num">200</span>,
+            <span class="hl-str">'body'</span>: json.<span class="hl-fn">dumps</span>(summary, ensure_ascii=<span class="hl-cls">False</span>, default=<span class="hl-fn">str</span>)
+        }
+
+    <span class="hl-kw">except</span> <span class="hl-cls">Exception</span> <span class="hl-kw">as</span> e:
+        <span class="hl-fn">print</span>(f<span class="hl-str">"❌ Error: {str(e)}"</span>)
+        <span class="hl-kw">raise</span></pre>
+    </div>
+    <div class="success-box"><span class="icon">✅</span><span>คลิก <span class="btn-aws">Deploy</span></span></div>
+
+    <div class="sub-h purple">ขั้นตอนที่ 3 — ทดสอบก่อน</div>
+    <div class="test-block">
+      <div class="test-header"><span class="icon">🧪</span><span class="tag">Test Event: test-summary</span></div>
+      <pre>{}</pre>
+    </div>
+    <div class="tip"><span class="icon">💡</span><span>คลิก <span class="btn-aws">Test</span> → ดู <strong>Log output</strong> ด้านล่าง จะเห็น print statements ที่เขียนไว้ใน code</span></div>
+
+    <div class="sub-h purple">ขั้นตอนที่ 4 — ตั้ง Schedule รันอัตโนมัติ</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">
+        <div class="nav-path">
+          แท็บ <kbd>Configuration</kbd><span class="sep">→</span>
+          <kbd>Triggers</kbd><span class="sep">→</span>
+          <span class="btn-aws">Add trigger</span>
+        </div>
+      </span></li>
+      <li class="step-w4"><span class="step-content">
+        <table class="cfg-table">
+          <tr><td class="field">Trigger source</td><td class="val">EventBridge (CloudWatch Events)</td></tr>
+          <tr><td class="field">Rule</td><td class="val">Create a new rule</td></tr>
+          <tr><td class="field">Rule name</td><td class="val">ict24267-daily-summary-schedule</td></tr>
+          <tr><td class="field">Rule type</td><td class="val">Schedule expression</td></tr>
+          <tr><td class="field">Schedule expression</td><td class="val">cron(0 1 * * ? *)</td></tr>
+        </table>
+        <div class="tip tip cron-box" style="margin-top:10px">
+          <span class="icon">📅</span>
+          <div>
+            <strong style="color:var(--yellow)">อ่านค่า cron:</strong> <kbd>cron(นาที ชั่วโมง วัน เดือน วันอาทิตย์ ปี)</kbd><br>
+            <kbd>0 1 * * ? *</kbd> = ทุกวัน เวลา 01:00 UTC = <strong style="color:var(--yellow)">08:00 น. ของไทย</strong>
+          </div>
+        </div>
+      </span></li>
+      <li class="step-w4"><span class="step-content">คลิก <span class="btn-aws">Add</span></span></li>
+    </ol>
+    <div class="success-box"><span class="icon">✅</span><span>ตั้งแต่นี้ไป Function จะรันอัตโนมัติทุกเช้า 8 โมง <strong>โดยไม่มีคนกด</strong></span></div>
+  </div>
+</div>
+
+<!-- ═══ LAB 4-2 ═══ -->
+<div class="lab lab-w4" id="lab42">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 4-2</span>
+    <span class="lab-title-text">SNS — ส่ง Email แจ้งเตือนอัตโนมัติ</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <div class="info-box">
+      <span class="icon">💜</span>
+      <div><strong style="color:var(--purple)">SNS (Simple Notification Service)</strong> คือบริการส่งข้อความของ AWS รองรับ Email, SMS และ Push Notification — ฟรี 1,000 emails/เดือน</div>
+    </div>
+
+    <div class="sub-h purple">ขั้นตอนที่ 1 — สร้าง SNS Topic</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">
+        <div class="nav-path">
+          <kbd>AWS Console</kbd><span class="sep">→</span>ค้นหา <kbd>SNS</kbd><span class="sep">→</span>
+          <kbd>Topics</kbd><span class="sep">→</span><span class="btn-aws">Create topic</span>
+        </div>
+      </span></li>
+      <li class="step-w4"><span class="step-content">
+        Type: <kbd>Standard</kbd> &nbsp;&nbsp; Name: <kbd>ict24267-feedback-alerts</kbd>
+      </span></li>
+      <li class="step-w4"><span class="step-content">คลิก <span class="btn-aws">Create topic</span></span></li>
+      <li class="step-w4"><span class="step-content">
+        <div class="success-box">
+          <span class="icon">✅</span>
+          <span><strong>บันทึก Topic ARN!</strong> เช่น <kbd style="font-size:11px">arn:aws:sns:ap-southeast-1:123456789:ict24267-feedback-alerts</kbd><br>จะใช้ในขั้นตอนต่อไป</span>
+        </div>
+      </span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 2 — Subscribe Email</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">ในหน้า Topic → <span class="btn-aws">Create subscription</span></span></li>
+      <li class="step-w4"><span class="step-content">Protocol: <kbd>Email</kbd> &nbsp;&nbsp; Endpoint: <strong style="color:var(--pink)">ใส่ Email ของคุณ</strong></span></li>
+      <li class="step-w4"><span class="step-content">คลิก <span class="btn-aws">Create subscription</span></span></li>
+      <li class="step-w4"><span class="step-content">
+        <div class="warn">
+          <span class="icon">⚠️</span>
+          <span><strong>ไปเช็ค Email แล้วคลิก "Confirm subscription"</strong> — ถ้าไม่ยืนยัน จะไม่ได้รับแจ้งเตือน!</span>
+        </div>
+      </span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 3 — อัปเดต submit-feedback ให้ส่ง Email</div>
+    <div class="warn" style="margin-bottom:12px">
+      <span class="icon">⚠️</span>
+      <span>แทนที่ <kbd>YOUR_SNS_TOPIC_ARN</kbd> ด้วย ARN จริงที่ได้จากขั้นตอนที่ 1 ก่อนวาง code</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">python · ict24267-submit-feedback (version ใหม่ + SNS)</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="hl-kw">import</span> json, boto3, uuid
+<span class="hl-kw">from</span> datetime <span class="hl-kw">import</span> datetime
+
+dynamodb = boto3.<span class="hl-fn">resource</span>(<span class="hl-str">'dynamodb'</span>, region_name=<span class="hl-str">'ap-southeast-1'</span>)
+table    = dynamodb.<span class="hl-fn">Table</span>(<span class="hl-str">'ict24267-feedbacks'</span>)
+sns      = boto3.<span class="hl-fn">client</span>(<span class="hl-str">'sns'</span>, region_name=<span class="hl-str">'ap-southeast-1'</span>)
+
+<span class="hl-cmt"># ⚠️ แทนที่ด้วย SNS Topic ARN จริงของคุณ</span>
+<span class="hl-dec">SNS_TOPIC_ARN</span> = <span class="hl-str">'YOUR_SNS_TOPIC_ARN'</span>
+
+<span class="hl-kw">def</span> <span class="hl-fn">lambda_handler</span>(event, context):
+    <span class="hl-kw">if</span> event.<span class="hl-fn">get</span>(<span class="hl-str">'requestContext'</span>, {}).<span class="hl-fn">get</span>(<span class="hl-str">'http'</span>, {}).<span class="hl-fn">get</span>(<span class="hl-str">'method'</span>) == <span class="hl-str">'OPTIONS'</span>:
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">200</span>, {})
+    <span class="hl-kw">try</span>:
+        body = json.<span class="hl-fn">loads</span>(event[<span class="hl-str">'body'</span>]) <span class="hl-kw">if</span> <span class="hl-fn">isinstance</span>(event.<span class="hl-fn">get</span>(<span class="hl-str">'body'</span>), str) <span class="hl-kw">else</span> event.<span class="hl-fn">get</span>(<span class="hl-str">'body'</span>, {})
+
+        <span class="hl-kw">for</span> field <span class="hl-kw">in</span> [<span class="hl-str">'student_name'</span>, <span class="hl-str">'course'</span>, <span class="hl-str">'rating'</span>]:
+            <span class="hl-kw">if not</span> body.<span class="hl-fn">get</span>(field):
+                <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">400</span>, {<span class="hl-str">'status'</span>: <span class="hl-str">'error'</span>, <span class="hl-str">'message'</span>: f<span class="hl-str">'กรุณากรอก {field}'</span>})
+
+        rating = <span class="hl-fn">int</span>(body[<span class="hl-str">'rating'</span>])
+        <span class="hl-kw">if not</span> <span class="hl-num">1</span> &lt;= rating &lt;= <span class="hl-num">5</span>:
+            <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">400</span>, {<span class="hl-str">'status'</span>: <span class="hl-str">'error'</span>, <span class="hl-str">'message'</span>: <span class="hl-str">'rating ต้องอยู่ระหว่าง 1-5'</span>})
+
+        feedback_id = f<span class="hl-str">"fb_{uuid.uuid4().hex[:10]}"</span>
+        item = {
+            <span class="hl-str">'feedback_id'</span>:  feedback_id,
+            <span class="hl-str">'student_name'</span>: body[<span class="hl-str">'student_name'</span>],
+            <span class="hl-str">'course'</span>:       body[<span class="hl-str">'course'</span>],
+            <span class="hl-str">'rating'</span>:       rating,
+            <span class="hl-str">'comment'</span>:      body.<span class="hl-fn">get</span>(<span class="hl-str">'comment'</span>, <span class="hl-str">''</span>),
+            <span class="hl-str">'timestamp'</span>:    datetime.<span class="hl-fn">now</span>().<span class="hl-fn">isoformat</span>()
+        }
+        table.<span class="hl-fn">put_item</span>(Item=item)
+
+        <span class="hl-cmt"># ส่ง Email แจ้งเตือนผ่าน SNS</span>
+        stars = <span class="hl-str">'⭐'</span> * rating
+        sns.<span class="hl-fn">publish</span>(
+            TopicArn=<span class="hl-dec">SNS_TOPIC_ARN</span>,
+            Subject=f<span class="hl-str">'[ICT24267] Feedback ใหม่จาก {body["student_name"]} - {stars}'</span>,
+            Message=f<span class="hl-str">"""มี Feedback ใหม่!
+นักศึกษา : {body['student_name']}
+วิชา      : {body['course']}
+คะแนน    : {stars} ({rating}/5)
+ความเห็น  : {body.get('comment','(ไม่มี)')}
+เวลา      : {item['timestamp']}"""</span>
+        )
+
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">201</span>, {<span class="hl-str">'status'</span>: <span class="hl-str">'success'</span>, <span class="hl-str">'message'</span>: <span class="hl-str">'บันทึก Feedback แล้ว ขอบคุณ! 🎉'</span>, <span class="hl-str">'feedback_id'</span>: feedback_id})
+    <span class="hl-kw">except</span> <span class="hl-cls">Exception</span> <span class="hl-kw">as</span> e:
+        <span class="hl-kw">return</span> <span class="hl-fn">cors_response</span>(<span class="hl-num">500</span>, {<span class="hl-str">'status'</span>: <span class="hl-str">'error'</span>, <span class="hl-str">'message'</span>: <span class="hl-fn">str</span>(e)})
+
+<span class="hl-kw">def</span> <span class="hl-fn">cors_response</span>(status_code, body):
+    <span class="hl-kw">return</span> {<span class="hl-str">'statusCode'</span>: status_code, <span class="hl-str">'headers'</span>: {<span class="hl-str">'Content-Type'</span>: <span class="hl-str">'application/json; charset=utf-8'</span>, <span class="hl-str">'Access-Control-Allow-Origin'</span>: <span class="hl-str">'*'</span>}, <span class="hl-str">'body'</span>: json.<span class="hl-fn">dumps</span>(body, ensure_ascii=<span class="hl-cls">False</span>)}</pre>
+    </div>
+    <div class="success-box"><span class="icon">✅</span><span>คลิก <span class="btn-aws">Deploy</span> → รัน <kbd>test-submit</kbd> อีกครั้ง → ไปเช็ค Email ควรได้รับแจ้งเตือนภายใน 1–2 นาที</span></div>
+  </div>
+</div>
+
+<!-- ═══ LAB 4-3 ═══ -->
+<div class="lab lab-w4" id="lab43">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 4-3</span>
+    <span class="lab-title-text">CloudWatch — ดูสุขภาพระบบ</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <p style="margin-bottom:16px;font-size:13.5px">CloudWatch เก็บ Log ทุกครั้งที่ Lambda รัน ทำให้ debug และ monitor ระบบได้</p>
+
+    <div class="sub-h purple">ขั้นตอนที่ 1 — ดู Log</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">Lambda → เปิด Function ใดก็ได้ → แท็บ <kbd>Monitor</kbd></span></li>
+      <li class="step-w4"><span class="step-content">คลิก <span class="btn-aws">View CloudWatch logs</span></span></li>
+      <li class="step-w4"><span class="step-content">คลิก Log stream ล่าสุด → จะเห็น log ทุก request</span></li>
+      <li class="step-w4"><span class="step-content">
+        <div class="tip"><span class="icon">✅</span><span>ค้นหา <kbd>print</kbd> statements ที่เราเขียนไว้ใน code จะเห็นอยู่ใน Log</span></div>
+      </span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 2 — สร้าง Dashboard</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">
+        <div class="nav-path">
+          <kbd>CloudWatch</kbd><span class="sep">→</span>
+          <kbd>Dashboards</kbd><span class="sep">→</span>
+          <span class="btn-aws">Create dashboard</span>
+        </div>
+        Dashboard name: <kbd>ICT24267-Feedback-System</kbd>
+      </span></li>
+      <li class="step-w4"><span class="step-content">
+        เพิ่ม Widget: <span class="btn-aws">Add widget</span> → <kbd>Line</kbd> → <kbd>Next</kbd><br>
+        Metrics → <kbd>Lambda</kbd> → <kbd>By Function Name</kbd><br>
+        ติ๊ก <kbd>Invocations</kbd> และ <kbd>Errors</kbd> ของทั้ง 3 Functions → <span class="btn-aws">Create widget</span>
+      </span></li>
+      <li class="step-w4"><span class="step-content">
+        เพิ่ม Widget อีกอัน: <kbd>Number</kbd> → <kbd>Lambda Duration</kbd> → <span class="btn-aws">Create widget</span>
+      </span></li>
+      <li class="step-w4"><span class="step-content">คลิก <span class="btn-aws">Save dashboard</span></span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 3 — สร้าง Alarm แจ้งเตือน Error</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">
+        <div class="nav-path">
+          <kbd>CloudWatch</kbd><span class="sep">→</span>
+          <kbd>Alarms</kbd><span class="sep">→</span>
+          <span class="btn-aws">Create alarm</span><span class="sep">→</span>
+          <span class="btn-aws">Select metric</span>
+        </div>
+        Lambda → By Function Name → <kbd>ict24267-submit-feedback</kbd> → <kbd>Errors</kbd>
+      </span></li>
+      <li class="step-w4"><span class="step-content">
+        Condition: <kbd>Greater than or equal to</kbd> → <kbd>3</kbd> &nbsp; Datapoints: <kbd>1 out of 5</kbd>
+      </span></li>
+      <li class="step-w4"><span class="step-content">
+        Notification → <span class="btn-aws">Create new topic</span> → ใส่ Email → <span class="btn-aws">Create topic</span>
+      </span></li>
+      <li class="step-w4"><span class="step-content">Alarm name: <kbd>ict24267-lambda-errors</kbd> → <span class="btn-aws">Create alarm</span></span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══ LAB 4-4 ═══ -->
+<div class="lab lab-w4" id="lab44">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 4-4</span>
+    <span class="lab-title-text">Frontend — หน้าเว็บสำหรับส่ง Feedback (S3 Static Website)</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <div class="info-box">
+      <span class="icon">💜</span>
+      <div><strong style="color:var(--purple)">S3 Static Website</strong> คือการเก็บไฟล์ HTML ใน S3 bucket แล้วเปิดเป็นเว็บได้เลย ไม่ต้องมี Server — Serverless ทั้งหมด!</div>
+    </div>
+
+    <div class="sub-h purple">ขั้นตอนที่ 1 — สร้าง S3 Bucket</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">
+        <div class="nav-path"><kbd>AWS Console</kbd><span class="sep">→</span><kbd>S3</kbd><span class="sep">→</span><span class="btn-aws">Create bucket</span></div>
+      </span></li>
+      <li class="step-w4"><span class="step-content">
+        <table class="cfg-table">
+          <tr><td class="field">Bucket name</td><td><kbd style="color:var(--cyan)">ict24267-feedback-web-</kbd><span style="color:var(--pink)">เลขนักศึกษา</span> เช่น <kbd>ict24267-feedback-web-6401001</kbd></td></tr>
+          <tr><td class="field">Region</td><td class="val">ap-southeast-1</td></tr>
+          <tr><td class="field">Block all public access</td><td style="color:var(--red)">ยกเลิกติ๊ก ✗ + ยืนยัน acknowledge</td></tr>
+        </table>
+        <div class="tip" style="margin-top:8px"><span class="icon">✅</span><span>ชื่อ S3 bucket ต้อง unique ทั่วโลก ให้ใส่เลขนักศึกษาต่อท้ายเสมอ</span></div>
+      </span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 2 — เปิด Static Website Hosting</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">เปิด bucket → แท็บ <kbd>Properties</kbd> → เลื่อนหา <kbd>Static website hosting</kbd> → <span class="btn-aws">Edit</span></span></li>
+      <li class="step-w4"><span class="step-content">Static website hosting: <kbd>Enable</kbd> &nbsp;&nbsp; Index document: <kbd>index.html</kbd></span></li>
+      <li class="step-w4"><span class="step-content"><span class="btn-aws">Save changes</span></span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 3 — ตั้งค่า Bucket Policy</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">แท็บ <kbd>Permissions</kbd> → <kbd>Bucket policy</kbd> → <span class="btn-aws">Edit</span></span></li>
+      <li class="step-w4"><span class="step-content">
+        วาง policy นี้ (<strong style="color:var(--pink)">แทนที่ YOUR-BUCKET-NAME ด้วยชื่อ bucket จริง</strong>):
+        <div class="test-block" style="margin-top:8px">
+          <div class="test-header"><span class="icon">🔐</span><span class="tag">Bucket Policy JSON</span></div>
+          <pre>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "PublicReadGetObject",
+    "Effect": "Allow",
+    "Principal": "*",
+    "Action": "s3:GetObject",
+    "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+  }]
+}</pre>
+        </div>
+      </span></li>
+      <li class="step-w4"><span class="step-content"><span class="btn-aws">Save changes</span></span></li>
+    </ol>
+
+    <div class="sub-h purple">ขั้นตอนที่ 4 — สร้างไฟล์ index.html</div>
+    <div class="warn" style="margin-bottom:12px">
+      <span class="icon">⚠️</span>
+      <div>
+        <strong>แทนที่ 2 ค่านี้ก่อน upload:</strong><br>
+        <kbd>YOUR_SUBMIT_URL</kbd> → Function URL ของ <kbd>ict24267-submit-feedback</kbd><br>
+        <kbd>YOUR_GET_URL</kbd> → Function URL ของ <kbd>ict24267-get-feedbacks</kbd>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">html · index.html (วาง code ทั้งหมดลงในไฟล์นี้)</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre style="font-size:11.5px">&lt;!DOCTYPE html&gt;
+&lt;html lang="th"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;ICT24267 — Feedback System&lt;/title&gt;
+  &lt;style&gt;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif;
+           background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+           min-height: 100vh; padding: 20px; color: #e0e0e0; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .header { text-align: center; padding: 30px 0 20px;
+              border-bottom: 2px solid #e94560; margin-bottom: 24px; }
+    .header h1 { font-size: 1.8em; color: #e94560; }
+    .card { background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+    .card h2 { color: #e94560; margin-bottom: 16px; }
+    label { display: block; margin-bottom: 5px; font-size: 0.85em; color: #a0a0b0; }
+    input, textarea { width: 100%; padding: 10px 12px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; color: #e0e0e0; margin-bottom: 12px; }
+    .star { font-size: 1.8em; cursor: pointer; filter: grayscale(1); opacity: 0.4; }
+    .star.active { filter: none; opacity: 1; }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px;
+           font-size: 1em; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: #e94560; color: white; margin-top: 8px; }
+    .btn-secondary { background: rgba(255,255,255,0.1); color: #e0e0e0; margin-top: 8px; }
+    #msg { padding: 10px; border-radius: 8px; margin-top: 10px; display: none; }
+    .success { background: rgba(40,167,69,0.3); color: #7dffb3; }
+    .error   { background: rgba(220,53,69,0.3);  color: #ffaaaa; }
+    .stat-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .stat { flex:1; background: rgba(233,69,96,0.15); border-radius: 8px;
+            padding: 14px; text-align: center; }
+    .stat-num { font-size: 2em; font-weight: 700; color: #e94560; }
+    .feedback-item { background: rgba(255,255,255,0.04); border-radius: 8px;
+                     padding: 12px; margin-bottom: 10px;
+                     border-left: 3px solid #e94560; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="container"&gt;
+  &lt;div class="header"&gt;
+    &lt;h1&gt;🎓 ICT24267 Feedback System&lt;/h1&gt;
+    &lt;p style="color:#a0a0b0"&gt;Powered by AWS Lambda + DynamoDB&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;h2&gt;📝 ส่ง Feedback&lt;/h2&gt;
+    &lt;div id="message"&gt;&lt;/div&gt;
+    &lt;label&gt;ชื่อ-นามสกุล *&lt;/label&gt;
+    &lt;input type="text" id="name" placeholder="ชื่อภาษาไทย"&gt;
+    &lt;label&gt;รหัสวิชา *&lt;/label&gt;
+    &lt;input type="text" id="course" value="ICT24267"&gt;
+    &lt;label&gt;คะแนนความพึงพอใจ *&lt;/label&gt;
+    &lt;div id="stars"&gt;
+      &lt;span class="star" data-val="1"&gt;⭐&lt;/span&gt;
+      &lt;span class="star" data-val="2"&gt;⭐&lt;/span&gt;
+      &lt;span class="star" data-val="3"&gt;⭐&lt;/span&gt;
+      &lt;span class="star" data-val="4"&gt;⭐&lt;/span&gt;
+      &lt;span class="star" data-val="5"&gt;⭐&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;label style="margin-top:12px"&gt;ความคิดเห็น&lt;/label&gt;
+    &lt;textarea id="comment" rows="3" placeholder="บอกเราว่าชอบหรือไม่ชอบอะไร..."&gt;&lt;/textarea&gt;
+    &lt;button class="btn btn-primary" onclick="submitFeedback()"&gt;ส่ง Feedback&lt;/button&gt;
+    &lt;div id="msg"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;h2&gt;📊 Feedback ทั้งหมด&lt;/h2&gt;
+    &lt;div class="stat-row"&gt;
+      &lt;div class="stat"&gt;&lt;div class="stat-num" id="totalCount"&gt;-&lt;/div&gt;&lt;div&gt;รายการ&lt;/div&gt;&lt;/div&gt;
+      &lt;div class="stat"&gt;&lt;div class="stat-num" id="avgRating"&gt;-&lt;/div&gt;&lt;div&gt;คะแนนเฉลี่ย/5&lt;/div&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;button class="btn btn-secondary" onclick="loadFeedbacks()"&gt;🔄 โหลด Feedback&lt;/button&gt;
+    &lt;div id="feedbackList" style="margin-top:16px"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+  const SUBMIT_URL = 'YOUR_SUBMIT_URL'; <span class="hl-cmt">// ← แทนที่ด้วย URL จริง</span>
+  const GET_URL    = 'YOUR_GET_URL';    <span class="hl-cmt">// ← แทนที่ด้วย URL จริง</span>
+  let selectedRating = 0;
+  document.querySelectorAll('.star').forEach(s =&gt; {
+    s.addEventListener('click', () =&gt; {
+      selectedRating = parseInt(s.dataset.val);
+      document.querySelectorAll('.star').forEach((x,i) =&gt;
+        x.classList.toggle('active', i &lt; selectedRating));
+    });
+  });
+  function showMsg(t,c){const e=document.getElementById('msg');e.textContent=t;e.className=c;e.style.display='block';setTimeout(()=&gt;e.style.display='none',4000)}
+  async function submitFeedback(){
+    const name=document.getElementById('name').value.trim();
+    const course=document.getElementById('course').value.trim();
+    if(!name)return showMsg('⚠️ กรุณากรอกชื่อ','error');
+    if(!selectedRating)return showMsg('⚠️ กรุณาเลือกคะแนน','error');
+    try{
+      const r=await fetch(SUBMIT_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({student_name:name,course,rating:selectedRating,comment:document.getElementById('comment').value})});
+      const d=await r.json();
+      if(d.status==='success'){showMsg('✅ ขอบคุณสำหรับ Feedback!','success');loadFeedbacks();}
+      else showMsg('❌ '+d.message,'error');
+    }catch(e){showMsg('❌ '+e.message,'error');}
+  }
+  async function loadFeedbacks(){
+    try{
+      const r=await fetch(GET_URL);const d=await r.json();
+      const items=d.data||[];
+      document.getElementById('totalCount').textContent=d.count||0;
+      document.getElementById('avgRating').textContent=d.average_rating||'-';
+      document.getElementById('feedbackList').innerHTML=items.map(f=&gt;`
+        &lt;div class="feedback-item"&gt;
+          &lt;div style="display:flex;justify-content:space-between;font-size:0.8em;color:#a0a0b0"&gt;
+            &lt;span&gt;👤 ${f.student_name} — ${f.course}&lt;/span&gt;
+            &lt;span&gt;${(f.timestamp||'').substring(0,10)}&lt;/span&gt;&lt;/div&gt;
+          &lt;div&gt;${'⭐'.repeat(parseInt(f.rating||0))}&lt;/div&gt;
+          ${f.comment?`&lt;div style="font-size:0.9em;margin-top:4px"&gt;${f.comment}&lt;/div&gt;`:''}
+        &lt;/div&gt;`).join('');
+    }catch(e){document.getElementById('feedbackList').innerHTML='❌ โหลดไม่ได้: '+e.message;}
+  }
+&lt;/script&gt;
+&lt;/body&gt;&lt;/html&gt;</pre>
+    </div>
+
+    <div class="sub-h purple">ขั้นตอนที่ 5 — Upload และเปิดเว็บ</div>
+    <ol class="steps">
+      <li class="step-w4"><span class="step-content">S3 → เปิด bucket → <span class="btn-aws">Upload</span> → <span class="btn-aws">Add files</span> → เลือกไฟล์ <kbd>index.html</kbd> → <span class="btn-aws">Upload</span></span></li>
+      <li class="step-w4"><span class="step-content">แท็บ <kbd>Properties</kbd> → เลื่อนหา <kbd>Static website hosting</kbd> → คลิก URL ที่ได้</span></li>
+      <li class="step-w4"><span class="step-content">
+        <div class="success-box"><span class="icon">🎉</span><span><strong>หน้าเว็บ Feedback System พร้อมใช้งาน!</strong> ทดลองส่ง feedback ผ่านหน้าเว็บได้เลย</span></div>
+      </span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══ LAB 4-5 ═══ -->
+<div class="lab lab-w4" id="lab45">
+  <div class="lab-header" onclick="toggle(this)">
+    <span class="lab-num">LAB 4-5</span>
+    <span class="lab-title-text">Cleanup — ลบ Resources หลัง LAB</span>
+    <span class="lab-toggle">▾</span>
+  </div>
+  <div class="lab-body">
+    <div class="warn" style="margin-bottom:16px">
+      <span class="icon">⚠️</span>
+      <span><strong>ทำทุกขั้นตอนหลัง LAB สิ้นสุด</strong> เพื่อไม่ให้เกิดค่าใช้จ่าย</span>
+    </div>
+    <ol class="cleanup-list">
+      <li>EventBridge → Rules → ลบ <kbd>ict24267-daily-summary-schedule</kbd></li>
+      <li>Lambda → ลบ Functions ทั้ง 3 ตัว</li>
+      <li>SNS → Subscriptions → ลบ subscription → Topics → ลบ <kbd>ict24267-feedback-alerts</kbd></li>
+      <li>S3 → เปิด bucket → ลบไฟล์ทั้งหมด → ลบ bucket</li>
+      <li>DynamoDB → Tables → เลือก <kbd>ict24267-feedbacks</kbd> → Delete table</li>
+      <li>CloudWatch → Dashboards → ลบ <kbd>ICT24267-Feedback-System</kbd></li>
+      <li>CloudWatch → Alarms → ลบ Alarm ทั้งหมด</li>
+      <li>IAM → Roles → ลบ <kbd>ict24267-serverless-role</kbd></li>
+    </ol>
+    <div class="tip" style="margin-top:12px">
+      <span class="icon">💡</span>
+      <span>DynamoDB Always Free ไม่มีค่าใช้จ่ายแม้ไม่ลบ แต่ควรลบเพื่อความเป็นระเบียบ</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXERCISES W4 ═══ -->
+<div id="ex4" style="margin-top:32px">
+  <div class="sub-h purple" style="font-size:13px;letter-spacing:3px">📝 แบบฝึกหัด Week 4</div>
+  <div class="exercise-card ex-w4">
+    <div class="ex-num">แบบฝึกหัดที่ 1</div>
+    <h4>เพิ่ม Filter ใน Daily Summary</h4>
+    <p>แก้ไข <kbd>ict24267-daily-summary</kbd> ให้สรุปเฉพาะ feedback ที่เข้ามา <strong>วันนี้</strong> เท่านั้น (ไม่ใช่ทั้งหมดตั้งแต่ต้น)</p>
+    <div style="margin-top:8px;font-size:12px;color:var(--muted)">💡 힌트: ใช้ <kbd>FilterExpression</kbd> กับ <kbd>Attr('timestamp').begins_with(str(date.today()))</kbd></div>
+  </div>
+  <div class="exercise-card ex-w4">
+    <div class="ex-num">แบบฝึกหัดที่ 2</div>
+    <h4>ปรับแต่ง Frontend</h4>
+    <p>แก้ไขไฟล์ <kbd>index.html</kbd> ให้:</p>
+    <ul>
+      <li>เพิ่มช่อง dropdown สำหรับเลือกชื่ออาจารย์</li>
+      <li>เพิ่มปุ่มกรองแสดงเฉพาะ feedback ที่ rating 5 ดาว</li>
+      <li>เปลี่ยนสีธีมตามความชอบ</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══ QUESTIONS W4 ═══ -->
+<div id="q4" style="margin-top:24px">
+  <div class="sub-h purple" style="font-size:13px;letter-spacing:3px">🗒️ คำถามท้ายบท Week 4</div>
+  <ul class="q-list q-w4">
+    <li><div class="q-body"><strong><span>Event-Driven</span></strong>ระบบมี 2 แบบ trigger: HTTP Request (คนกด) และ Schedule (รันเอง) อธิบายว่าแต่ละแบบเหมาะกับงานประเภทใด และยกตัวอย่าง use case จริงในโลก IT</div></li>
+    <li><div class="q-body"><strong><span>SNS vs SES</span></strong>AWS มีบริการส่ง Email 2 แบบ คือ SNS และ SES — อธิบายความแตกต่าง และควรใช้แบบใดถ้าต้องการส่ง Email สวยงามแบบ HTML?</div></li>
+    <li><div class="q-body"><strong><span>S3 Static Website</span></strong>เปรียบเทียบ S3 Static Website กับ EC2 + Nginx (Week 1) ในแง่ของ: ความยุ่งยาก, ค่าใช้จ่าย และ Scalability</div></li>
+    <li><div class="q-body"><strong><span>Observability</span></strong>อธิบายความแตกต่างระหว่าง Logging, Monitoring และ Alerting — ทั้ง 3 อย่างมีความสำคัญอย่างไรในระบบ Production?</div></li>
+    <li><div class="q-body"><strong><span>Architecture Review</span></strong>มองภาพรวมทั้ง 4 สัปดาห์ ถ้าต้องเลือกสร้างระบบใหม่ในอนาคต คุณจะเลือก EC2+RDS หรือ Lambda+DynamoDB? เพราะอะไร?</div></li>
+  </ul>
+</div>
+
+<!-- ═══ SUMMARY ═══ -->
+<div id="summary" style="margin-top:48px">
+  <div class="week-divider" style="margin-top:0;margin-bottom:24px">
+    <span class="label" style="color:var(--yellow);font-family:var(--mono);font-size:11px;letter-spacing:2px">★ สรุปสิ่งที่เรียนรู้ตลอด 4 สัปดาห์</span>
+    <span class="line" style="background:linear-gradient(90deg,rgba(255,224,58,0.4),transparent)"></span>
+  </div>
+
+  <div class="final-grid">
+    <div class="final-card fc-w1">
+      <div class="fc-week">Week 1 — EC2 + Flask</div>
+      <ul class="fc-items">
+        <li>สร้าง Virtual Machine บน Cloud</li>
+        <li>Deploy Web Application ด้วย Python Flask</li>
+        <li>Security Group, Elastic IP, Nginx</li>
+      </ul>
+    </div>
+    <div class="final-card fc-w2">
+      <div class="fc-week">Week 2 — RDS + MySQL</div>
+      <ul class="fc-items">
+        <li>สร้างฐานข้อมูล MySQL (Managed Service)</li>
+        <li>เชื่อมต่อ Application กับ Database</li>
+        <li>CRUD Operations ผ่าน REST API</li>
+      </ul>
+    </div>
+    <div class="final-card fc-w3">
+      <div class="fc-week">Week 3 — Lambda + DynamoDB</div>
+      <ul class="fc-items">
+        <li>เข้าใจแนวคิด Serverless Architecture</li>
+        <li>Lambda Function แบบ Event-Driven</li>
+        <li>DynamoDB ฐานข้อมูล NoSQL ไร้ Server</li>
+        <li>เปิด API ด้วย Function URL</li>
+      </ul>
+    </div>
+    <div class="final-card fc-w4">
+      <div class="fc-week">Week 4 — Automation + Monitoring</div>
+      <ul class="fc-items">
+        <li>Scheduled Tasks ด้วย EventBridge</li>
+        <li>Real-time Notification ด้วย SNS</li>
+        <li>Monitoring ด้วย CloudWatch</li>
+        <li>Static Website บน S3</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="concept-box" style="margin-top:20px">
+    <h2>⚖️ Serverless vs Traditional — สรุปสุดท้าย</h2>
+    <table class="compare-table" style="margin-top:12px">
+      <tr>
+        <th></th>
+        <th>EC2 + RDS (Traditional)</th>
+        <th>Lambda + DynamoDB (Serverless)</th>
+      </tr>
+      <tr><td>เราดูแล</td><td class="ec2">OS, Runtime, Scaling, Availability</td><td class="lambda">เฉพาะ Code เท่านั้น</td></tr>
+      <tr><td>AWS ดูแล</td><td class="ec2">Hardware</td><td class="lambda">Hardware + OS + Runtime + Scaling</td></tr>
+      <tr><td>จ่ายเงิน</td><td class="ec2">ตลอด 24 ชั่วโมง</td><td class="lambda">เฉพาะตอนรัน (เป็น millisecond)</td></tr>
+      <tr><td>เหมาะกับ</td><td class="ec2">งาน stateful, real-time, ต่อเนื่อง</td><td class="lambda">งาน event-driven, traffic ไม่แน่นอน</td></tr>
+      <tr><td>ตัวอย่าง</td><td class="ec2">E-commerce, Game Server</td><td class="lambda">Chatbot, Image Processing, API</td></tr>
+    </table>
+    <div class="success-box" style="margin-top:16px">
+      <span class="icon">🎯</span>
+      <span><strong>ข้อสรุปสำคัญ:</strong> ไม่มีแบบไหนดีกว่าแบบไหนเสมอไป — วิศวกรที่ดีต้องรู้จักทั้งสองแบบและเลือกใช้ให้เหมาะกับ requirement ของระบบนั้นๆ</span>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 0 20px;color:var(--muted);font-size:12px;font-family:var(--mono)">
+  ICT 24267 Cloud Computing · ภาคการศึกษา 2/2568 · อาจารย์อำนาจ คงเจริญถิ่น<br>
+  <span style="color:rgba(0,255,200,0.3)">── AWS Free Tier ──</span>
+</div>
+
+</div><!-- /page -->
+
+<script>
+function toggle(header) {
+  const lab = header.closest('.lab');
+  lab.classList.toggle('open');
+}
+// Auto-open first lab on load
+document.querySelectorAll('.lab').forEach((lab, i) => {
+  if (i === 0) lab.classList.add('open');
+});
+</script>
+</body>
+</html>
