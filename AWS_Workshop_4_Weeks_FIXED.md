@@ -2333,13 +2333,43 @@ aws ce get-cost-and-usage \
 ```
 
 ## B. สรุป Free Tier Checklist
-
+ 
 ```
 ก่อนเริ่ม LAB ทุกครั้ง:
 [ ] ตรวจสอบ AWS Billing Dashboard
 [ ] มี Budget Alert ตั้งค่าไว้แล้ว
 [ ] ใช้ ap-southeast-1 หรือ us-east-1 เท่านั้น
-
+ 
 ระหว่าง LAB:
 [ ] EC2: ใช้ t2.micro หรือ t3.micro เท่านั้น
-[ ] 
+[ ] RDS: ใช้ db.t3.micro, Single-AZ, 20GB เท่านั้น
+[ ] ไม่สร้าง NAT Gateway (มีค่าใช้จ่าย!)
+[ ] ไม่ใช้ Application/Network Load Balancer (มีค่าใช้จ่าย!)
+ 
+หลัง LAB ทุกครั้ง:
+[ ] Stop หรือ Terminate EC2 Instances
+[ ] Stop หรือ Delete RDS Instances
+[ ] Release Elastic IPs ที่ไม่ใช้
+[ ] ลบ Lambda Functions ที่ไม่จำเป็น
+[ ] ลบ API Gateway Stages ที่ไม่ใช้
+[ ] ตรวจสอบ Billing ซ้ำ
+```
+ 
+## C. Resources เพิ่มเติม
+ 
+| แหล่งเรียนรู้ | URL |
+|---|---|
+| AWS Free Tier Details | https://aws.amazon.com/free/ |
+| AWS Documentation | https://docs.aws.amazon.com/ |
+| AWS Lambda Developer Guide | https://docs.aws.amazon.com/lambda/latest/dg/ |
+| AWS RDS User Guide | https://docs.aws.amazon.com/rds/ |
+| AWS API Gateway Guide | https://docs.aws.amazon.com/apigateway/ |
+| AWS Well-Architected Framework | https://aws.amazon.com/architecture/well-architected/ |
+| AWS Skill Builder (Free Courses) | https://skillbuilder.aws/ |
+| AWS Training & Certification | https://aws.amazon.com/training/ |
+ 
+---
+ 
+*คู่มือ LAB นี้จัดทำสำหรับ**วิชา ICT 24267 Cloud Computing** ภาคการศึกษา 2/2568*  
+*ผู้สอน: อาจารย์อำนาจ คงเจริญถิ่น*  
+*เนื้อหาอัปเดตตาม AWS Free Tier 2026*
