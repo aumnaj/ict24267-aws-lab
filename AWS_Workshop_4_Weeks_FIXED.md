@@ -907,65 +907,120 @@ curl -X POST http://localhost:5000/students \
 
 ## ระยะเวลา: 3 ชั่วโมง
 
+> 💡 **Week 3 ภาพรวม**: เราจะสร้าง Serverless API คู่ขนานกับ Flask ที่ทำใน Week 1-2 โดยใช้ Lambda + API Gateway แทน EC2 ทุก code ในสัปดาห์นี้ **วาง (paste) ลงใน AWS Console ได้โดยตรง ไม่ต้องสร้างไฟล์ใดๆ**
+
 ---
 
 ## 🔧 LAB 3-1: สร้าง IAM Role สำหรับ Lambda
 
-### ขั้นตอนที่ 1: สร้าง IAM Role
-1. AWS Console → **IAM** → **Roles** → **Create role**
-2. Trusted entity: **AWS service** → **Lambda**
-3. เพิ่ม Permissions policies:
-   - `AWSLambdaVPCAccessExecutionRole` (สำหรับเข้าถึง VPC/RDS)
-   - `AWSLambdaBasicExecutionRole` (สำหรับ CloudWatch Logs)
-   - `AmazonSSMReadOnlyAccess` (สำหรับดึง credentials จาก SSM Parameter Store ใน Week 4)
-4. Role name: `ict24267-lambda-role`
+IAM Role คือ "ใบอนุญาต" ให้ Lambda เข้าถึง AWS Services ต่างๆ ได้
 
-> 💡 **หมายเหตุ**: เพิ่ม `AmazonSSMReadOnlyAccess` ไว้ตั้งแต่ตอนนี้เลย เพื่อไม่ต้องกลับมาแก้ IAM Role ใน Week 4
+### ขั้นตอน (ทำครั้งเดียว ใช้ได้ทุก Function)
+
+**1.** ไปที่ AWS Console → พิมพ์ **IAM** ในช่องค้นหา → คลิก **IAM**
+
+**2.** เมนูซ้าย → **Roles** → คลิกปุ่ม **Create role**
+
+**3.** หน้า "Select trusted entity":
+   - เลือก **AWS service**
+   - Use case: เลือก **Lambda**
+   - คลิก **Next**
+
+**4.** หน้า "Add permissions" — ค้นหาและเพิ่ม **3 policies** นี้ทีละอัน:
+
+| ค้นหาคำว่า | เลือก Policy นี้ | หน้าที่ |
+|---|---|---|
+| `LambdaVPC` | `AWSLambdaVPCAccessExecutionRole` | เข้าถึง RDS ใน VPC ได้ |
+| `LambdaBasic` | `AWSLambdaBasicExecutionRole` | เขียน Log ลง CloudWatch ได้ |
+| `SSMReadOnly` | `AmazonSSMReadOnlyAccess` | อ่าน Password จาก SSM ได้ (ใช้ใน Week 4) |
+
+   > ✅ ติ๊กถูกทั้ง 3 แล้วค่อยคลิก **Next**
+
+**5.** หน้า "Name, review, and create":
+   - Role name: `ict24267-lambda-role`
+   - คลิก **Create role**
+
+✅ **เสร็จแล้ว** — จะเห็น Role ใหม่ในรายการ
 
 ---
 
 ## 🔧 LAB 3-2: สร้าง Lambda Layer สำหรับ PyMySQL
 
-เนื่องจาก Lambda ไม่มี `pymysql` ติดตั้งมาให้ ต้องสร้าง Layer:
+Lambda ไม่มี library `pymysql` ติดมาให้ เราต้องสร้าง "Layer" (ชุด library เสริม) แนบเข้าไป
+
+> 💡 **Layer คืออะไร?** เปรียบเหมือนการ pip install แต่ทำครั้งเดียวแล้วแชร์ใช้ได้หลาย Function
+
+### ขั้นตอนที่ 1: สร้าง Layer Package บน EC2
+
+SSH เข้า EC2 แล้วรันคำสั่งต่อไปนี้ทีละบรรทัด:
 
 ```bash
-# รันบนเครื่อง Local หรือ EC2
-mkdir -p lambda-layer/python
+# สร้างโฟลเดอร์สำหรับ Layer
+mkdir -p /home/ec2-user/lambda-layer/python
 
-# ✅ ระบุ --platform และ --python-version ให้ตรงกับ Lambda Runtime (Python 3.11)
-#    เพื่อให้ได้ binary ที่ compatible กับ Lambda environment (Amazon Linux 2)
+# Download pymysql ให้ตรงกับ Lambda (Amazon Linux, Python 3.11)
 pip3 install pymysql \
     --platform manylinux2014_x86_64 \
     --python-version 3.11 \
     --only-binary=:all: \
-    --target lambda-layer/python/
+    --target /home/ec2-user/lambda-layer/python/
 
-cd lambda-layer
+# สร้างไฟล์ .zip
+cd /home/ec2-user/lambda-layer
 zip -r pymysql-layer.zip python/
+
+# ตรวจสอบว่าไฟล์สร้างแล้ว
+ls -lh pymysql-layer.zip
 ```
 
-> 💡 **ทำไมต้องระบุ `--platform`?** บางเครื่อง Local (เช่น macOS, Windows) จะ build package สำหรับ OS ตัวเอง ทำให้ไม่ทำงานบน Lambda (Amazon Linux) ควรใช้คำสั่งด้านบนเสมอ
+> ✅ ควรเห็นไฟล์ `pymysql-layer.zip` ขนาดประมาณ 200-300 KB
 
-1. AWS Console → **Lambda** → **Layers** → **Create layer**
-2. Name: `pymysql-layer`
-3. Upload: `pymysql-layer.zip`
-4. Compatible runtimes: **Python 3.11**
-5. คลิก **Create**
+### ขั้นตอนที่ 2: Upload Layer ขึ้น AWS
+
+**1.** AWS Console → ค้นหา **Lambda** → คลิก **Lambda**
+
+**2.** เมนูซ้าย → **Layers** → คลิก **Create layer**
+
+**3.** กรอกข้อมูล:
+   - Name: `pymysql-layer`
+   - Upload: คลิก **Upload a .zip file** → เลือกไฟล์ `pymysql-layer.zip`
+     > หากไฟล์อยู่บน EC2 ให้ download มาก่อน หรือใช้วิธี upload ผ่าน S3 ก็ได้
+   - Compatible runtimes: เลือก **Python 3.11**
+
+**4.** คลิก **Create**
+
+✅ **เสร็จแล้ว** — เห็น Layer พร้อมใช้งาน
 
 ---
 
-## 🔧 LAB 3-3: สร้าง Lambda Functions
+## 🔧 LAB 3-3: สร้าง Lambda Function 1 — ดึงข้อมูล (GET)
 
-### Function 1: `ict24267-get-students`
+Function นี้ทำหน้าที่: **ดึงรายชื่อนักศึกษาทั้งหมด** และ **ดึงนักศึกษาคนเดียวตาม ID**
 
-1. Lambda → **Create function**
-2. Function name: `ict24267-get-students`
-3. Runtime: **Python 3.11**
-4. Execution role: **Use an existing role** → `ict24267-lambda-role`
+### ขั้นตอนที่ 1: สร้าง Function
 
-**โค้ด Lambda Function:**
+**1.** Lambda → **Functions** → คลิก **Create function**
+
+**2.** เลือก **Author from scratch** แล้วกรอก:
+   - Function name: `ict24267-get-students`
+   - Runtime: **Python 3.11**
+   - Architecture: **x86_64**
+
+**3.** Permissions → เปิด **Change default execution role**:
+   - เลือก **Use an existing role**
+   - Existing role: `ict24267-lambda-role`
+
+**4.** คลิก **Create function**
+
+### ขั้นตอนที่ 2: วาง Code
+
+**1.** ในหน้า Function → แท็บ **Code**
+
+**2.** เห็น editor มีไฟล์ `lambda_function.py` — **คลิกที่ไฟล์นั้น**
+
+**3.** **ลบ code เดิมทั้งหมด** แล้ว **วาง code นี้แทน**:
+
 ```python
-# lambda_get_students.py
 import json
 import pymysql
 import os
@@ -975,7 +1030,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def get_db_connection():
-    """สร้าง RDS Connection"""
     return pymysql.connect(
         host=os.environ['DB_HOST'],
         port=int(os.environ.get('DB_PORT', 3306)),
@@ -987,124 +1041,146 @@ def get_db_connection():
         connect_timeout=10
     )
 
+def build_response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        },
+        "body": json.dumps(body, ensure_ascii=False, default=str)
+    }
+
 def lambda_handler(event, context):
-    """
-    Lambda Handler สำหรับดึงข้อมูลนักศึกษา
-    Supports: GET /students และ GET /students/{id}
-    """
     logger.info(f"Event: {json.dumps(event)}")
-    
-    # ดึง path parameters
-    path_params = event.get('pathParameters') or {}
-    student_id = path_params.get('id')
-    
-    # ดึง query string parameters
+
+    path_params  = event.get('pathParameters') or {}
     query_params = event.get('queryStringParameters') or {}
-    faculty = query_params.get('faculty')
-    min_gpa = query_params.get('min_gpa')
-    
+    student_id   = path_params.get('id')
+    faculty      = query_params.get('faculty')
+    min_gpa      = query_params.get('min_gpa')
+
     conn = None
     try:
         conn = get_db_connection()
-        
         with conn.cursor() as cursor:
+
             if student_id:
-                # ดึงนักศึกษาคนเดียว
-                cursor.execute(
-                    "SELECT * FROM students WHERE id = %s", 
-                    (student_id,)
-                )
+                # ---- GET /students/{id} ----
+                cursor.execute("SELECT * FROM students WHERE id = %s", (student_id,))
                 student = cursor.fetchone()
-                
                 if not student:
-                    return build_response(404, {
-                        "status": "error",
-                        "message": f"Student ID {student_id} not found"
-                    })
-                
-                # แปลง Decimal เป็น float
+                    return build_response(404, {"status": "error", "message": f"ไม่พบนักศึกษา ID {student_id}"})
                 student['gpa'] = float(student['gpa']) if student['gpa'] else 0.0
-                
-                return build_response(200, {
-                    "status": "success",
-                    "data": student
-                })
+                return build_response(200, {"status": "success", "data": student})
+
             else:
-                # ดึงนักศึกษาทั้งหมด พร้อม filters
-                query = "SELECT * FROM students WHERE 1=1"
+                # ---- GET /students ----
+                query  = "SELECT * FROM students WHERE 1=1"
                 params = []
-                
                 if faculty:
                     query += " AND faculty = %s"
                     params.append(faculty)
                 if min_gpa:
                     query += " AND gpa >= %s"
                     params.append(float(min_gpa))
-                
                 query += " ORDER BY student_id"
                 cursor.execute(query, params)
                 students = cursor.fetchall()
-                
-                # แปลง Decimal เป็น float
                 for s in students:
                     s['gpa'] = float(s['gpa']) if s['gpa'] else 0.0
-                
-                return build_response(200, {
-                    "status": "success",
-                    "count": len(students),
-                    "data": students
-                })
-                
+                return build_response(200, {"status": "success", "count": len(students), "data": students})
+
     except pymysql.Error as e:
-        logger.error(f"Database error: {str(e)}")
-        return build_response(500, {
-            "status": "error",
-            "message": f"Database error: {str(e)}"
-        })
+        logger.error(f"DB Error: {str(e)}")
+        return build_response(500, {"status": "error", "message": f"Database error: {str(e)}"})
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
-        return build_response(500, {
-            "status": "error",
-            "message": "Internal server error"
-        })
+        logger.error(f"Error: {str(e)}")
+        return build_response(500, {"status": "error", "message": "Internal server error"})
     finally:
         if conn:
             conn.close()
-
-def build_response(status_code, body):
-    """สร้าง HTTP Response ที่ถูกต้องสำหรับ API Gateway"""
-    return {
-        "statusCode": status_code,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "Content-Type",
-            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS"
-        },
-        "body": json.dumps(body, ensure_ascii=False, default=str)
-    }
 ```
 
-5. เพิ่ม **Environment Variables**:
-   - `DB_HOST`: endpoint ของ RDS
-   - `DB_PORT`: 3306
-   - `DB_NAME`: student_db
-   - `DB_USER`: admin
-   - `DB_PASSWORD`: ICT24267
+**4.** คลิกปุ่ม **Deploy** (สีส้ม มุมขวาบน)
 
-6. เพิ่ม **VPC Configuration** (เพื่อเข้าถึง RDS):
-   - VPC: Default VPC
-   - Subnets: เลือกทุก subnet
-   - Security groups: `ict24267-rds-sg`
+### ขั้นตอนที่ 3: ตั้งค่า Environment Variables
 
-7. เพิ่ม **Layer**: เลือก `pymysql-layer` ที่สร้างไว้
+**1.** แท็บ **Configuration** → เมนูซ้าย **Environment variables** → **Edit**
 
-### Function 2: `ict24267-manage-students`
+**2.** คลิก **Add environment variable** เพิ่ม **5 ค่า** ดังนี้:
 
-สร้าง Lambda Function อีกตัวสำหรับ POST/PUT/DELETE:
+| Key | Value |
+|---|---|
+| `DB_HOST` | endpoint RDS ของคุณ เช่น `ict24267-db.abc123.ap-southeast-1.rds.amazonaws.com` |
+| `DB_PORT` | `3306` |
+| `DB_NAME` | `student_db` |
+| `DB_USER` | `admin` |
+| `DB_PASSWORD` | `ICT24267@2568` |
+
+**3.** คลิก **Save**
+
+### ขั้นตอนที่ 4: ตั้งค่า VPC (เพื่อให้เข้าถึง RDS ได้)
+
+**1.** แท็บ **Configuration** → เมนูซ้าย **VPC** → **Edit**
+
+**2.** ตั้งค่า:
+   - VPC: เลือก **Default VPC**
+   - Subnets: **เลือกทุก subnet** ที่มี
+   - Security groups: เลือก `ict24267-rds-sg`
+
+**3.** คลิก **Save**
+
+> ⚠️ การ save VPC จะใช้เวลา 1-2 นาที รอจนขึ้น "Successfully updated"
+
+### ขั้นตอนที่ 5: เพิ่ม Layer
+
+**1.** เลื่อนลงล่างสุดของหน้า Function → ส่วน **Layers** → คลิก **Add a layer**
+
+**2.** เลือก **Custom layers** → เลือก `pymysql-layer` → Version: เลือกเลขล่าสุด
+
+**3.** คลิก **Add**
+
+### ขั้นตอนที่ 6: ทดสอบ Function
+
+**1.** แท็บ **Test** → คลิก **Create new event**
+
+**2.** Event name: `test-get-all` แล้วแทนที่ JSON ทั้งหมดด้วย:
+
+```json
+{
+  "httpMethod": "GET",
+  "pathParameters": null,
+  "queryStringParameters": null
+}
+```
+
+**3.** คลิก **Test**
+
+**4.** ✅ ผลลัพธ์ที่ถูกต้อง — ควรเห็น `"status": "success"` และรายชื่อนักศึกษา
+
+---
+
+## 🔧 LAB 3-4: สร้าง Lambda Function 2 — จัดการข้อมูล (POST/PUT/DELETE)
+
+Function นี้ทำหน้าที่: **เพิ่ม / แก้ไข / ลบ** นักศึกษา
+
+### ขั้นตอนที่ 1: สร้าง Function
+
+**1.** Lambda → **Functions** → **Create function**
+
+**2.** กรอกข้อมูล:
+   - Function name: `ict24267-manage-students`
+   - Runtime: **Python 3.11**
+   - Execution role: `ict24267-lambda-role` (เหมือนเดิม)
+
+**3.** คลิก **Create function**
+
+### ขั้นตอนที่ 2: วาง Code
+
+ใน editor ของ `lambda_function.py` — **ลบ code เดิมทั้งหมด** แล้ว **วาง code นี้แทน**:
 
 ```python
-# lambda_manage_students.py
 import json
 import pymysql
 import os
@@ -1126,22 +1202,31 @@ def get_db_connection():
         connect_timeout=10
     )
 
+def build_response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        },
+        "body": json.dumps(body, ensure_ascii=False, default=str)
+    }
+
 def lambda_handler(event, context):
     logger.info(f"Event: {json.dumps(event)}")
-    
+
     http_method = event.get('httpMethod', '')
     path_params = event.get('pathParameters') or {}
-    student_id = path_params.get('id')
-    
-    # แปลง body
+    student_id  = path_params.get('id')
+
     body = {}
     if event.get('body'):
         body = json.loads(event['body'])
-    
+
     conn = None
     try:
         conn = get_db_connection()
-        
+
         if http_method == 'POST':
             return create_student(conn, body)
         elif http_method == 'PUT' and student_id:
@@ -1149,8 +1234,8 @@ def lambda_handler(event, context):
         elif http_method == 'DELETE' and student_id:
             return delete_student(conn, student_id)
         else:
-            return build_response(400, {"status": "error", "message": "Invalid request"})
-            
+            return build_response(400, {"status": "error", "message": "คำขอไม่ถูกต้อง"})
+
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         return build_response(500, {"status": "error", "message": str(e)})
@@ -1158,16 +1243,13 @@ def lambda_handler(event, context):
         if conn:
             conn.close()
 
+
 def create_student(conn, data):
-    required = ['student_id', 'name']
-    for field in required:
+    # ตรวจสอบ field บังคับ
+    for field in ['student_id', 'name']:
         if not data.get(field):
-            return build_response(400, {
-                "status": "error",
-                "message": f"Missing required field: {field}"
-            })
-    
-    # ✅ คำนวณปีการศึกษาไทย (พ.ศ.) จากปัจจุบัน ให้ consistent กับ app.py Week 2
+            return build_response(400, {"status": "error", "message": f"กรุณากรอก {field}"})
+
     current_thai_year = datetime.now().year + 543
 
     with conn.cursor() as cursor:
@@ -1183,15 +1265,20 @@ def create_student(conn, data):
         )
         conn.commit()
         new_id = cursor.lastrowid
-        
         cursor.execute("SELECT * FROM students WHERE id = %s", (new_id,))
         student = cursor.fetchone()
         student['gpa'] = float(student['gpa']) if student['gpa'] else 0.0
-        
+
     return build_response(201, {"status": "success", "data": student})
+
 
 def update_student(conn, student_id, data):
     with conn.cursor() as cursor:
+        # ตรวจสอบว่ามีนักศึกษา ID นี้จริง
+        cursor.execute("SELECT id FROM students WHERE id = %s", (student_id,))
+        if not cursor.fetchone():
+            return build_response(404, {"status": "error", "message": "ไม่พบนักศึกษา"})
+
         cursor.execute(
             """UPDATE students SET name=%s, email=%s, faculty=%s, major=%s, gpa=%s
                WHERE id=%s""",
@@ -1200,138 +1287,66 @@ def update_student(conn, student_id, data):
              data.get('gpa'), student_id)
         )
         conn.commit()
-        
         cursor.execute("SELECT * FROM students WHERE id = %s", (student_id,))
         student = cursor.fetchone()
-        
-    if not student:
-        return build_response(404, {"status": "error", "message": "Student not found"})
-    
-    student['gpa'] = float(student['gpa']) if student['gpa'] else 0.0
+        student['gpa'] = float(student['gpa']) if student['gpa'] else 0.0
+
     return build_response(200, {"status": "success", "data": student})
+
 
 def delete_student(conn, student_id):
     with conn.cursor() as cursor:
-        affected = cursor.execute(
-            "DELETE FROM students WHERE id = %s", (student_id,)
-        )
+        affected = cursor.execute("DELETE FROM students WHERE id = %s", (student_id,))
         conn.commit()
-    
+
     if affected == 0:
-        return build_response(404, {"status": "error", "message": "Student not found"})
-    
-    return build_response(200, {
-        "status": "success",
-        "message": f"Student ID {student_id} deleted successfully"
-    })
+        return build_response(404, {"status": "error", "message": "ไม่พบนักศึกษา"})
 
-def build_response(status_code, body):
-    return {
-        "statusCode": status_code,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "Content-Type",
-            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS"
-        },
-        "body": json.dumps(body, ensure_ascii=False, default=str)
-    }
+    return build_response(200, {"status": "success", "message": f"ลบนักศึกษา ID {student_id} แล้ว"})
 ```
+
+**3.** คลิก **Deploy**
+
+### ขั้นตอนที่ 3-5: ตั้งค่า Environment Variables, VPC และ Layer
+
+> ✅ ทำเหมือน Function แรก (`ict24267-get-students`) **ทุกขั้นตอน** — ค่าทุกอย่างเหมือนกันทั้งหมด
+
+### ขั้นตอนที่ 6: ทดสอบ Function
+
+**1.** แท็บ **Test** → **Create new event** ชื่อ `test-post` ด้วย JSON นี้:
+
+```json
+{
+  "httpMethod": "POST",
+  "pathParameters": null,
+  "body": "{\"student_id\": \"9999999\", \"name\": \"ทดสอบ ระบบ\", \"faculty\": \"ICT\", \"major\": \"Cloud\", \"gpa\": 3.5}"
+}
+```
+
+**2.** คลิก **Test** — ✅ ควรเห็น `"status": "success"` และข้อมูลนักศึกษาที่เพิ่งเพิ่ม
 
 ---
 
-## 🔧 LAB 3-4: สร้าง API Gateway
+## 🔧 LAB 3-5: สร้าง Lambda Function 3 — รายงานประจำวัน (Scheduled)
 
-### ขั้นตอนที่ 1: สร้าง REST API
-1. AWS Console → **API Gateway** → **Create API**
-2. เลือก **REST API** → **Build**
-3. Protocol: **REST**
-4. Create new API: **New API**
-5. API name: `ict24267-student-api`
-6. Endpoint Type: **Regional**
-7. คลิก **Create API**
+Function นี้ทำหน้าที่: **สรุปสถิติอัตโนมัติทุกวัน** โดยไม่ต้องมีคนกด
 
-### ขั้นตอนที่ 2: สร้าง Resources และ Methods
+### ขั้นตอนที่ 1: สร้าง Function
 
-**สร้าง `/students` resource:**
-1. Actions → **Create Resource**
-2. Resource Name: `students`
-3. Resource Path: `students`
-4. Enable API Gateway CORS: ✅
-5. Create Resource
+**1.** Lambda → **Functions** → **Create function**
 
-**เพิ่ม Method GET บน /students:**
-1. เลือก `/students` → Actions → **Create Method** → **GET**
-2. Integration type: **Lambda Function**
-3. Lambda Function: `ict24267-get-students`
-4. Save → OK (Allow API Gateway to invoke Lambda)
+**2.** กรอก:
+   - Function name: `ict24267-daily-report`
+   - Runtime: **Python 3.11**
+   - Execution role: `ict24267-lambda-role`
 
-**เพิ่ม Method POST บน /students:**
-1. เลือก `/students` → Actions → **Create Method** → **POST**
-2. Lambda Function: `ict24267-manage-students`
+**3.** คลิก **Create function**
 
-**สร้าง `/students/{id}` resource:**
-1. เลือก `/students` → Actions → **Create Resource**
-2. Resource Name: `student`
-3. Resource Path: `{id}` (ใส่ curly braces)
-4. Create Resource
+### ขั้นตอนที่ 2: วาง Code
 
-**เพิ่ม Methods บน /students/{id}:**
-- GET → `ict24267-get-students`
-- PUT → `ict24267-manage-students`
-- DELETE → `ict24267-manage-students`
-
-### ขั้นตอนที่ 3: Deploy API
-1. Actions → **Deploy API**
-2. Deployment stage: **[New Stage]**
-3. Stage name: `prod`
-4. คลิก **Deploy**
-5. บันทึก **Invoke URL**: `https://xxxxxxxxxx.execute-api.ap-southeast-1.amazonaws.com/prod`
-
-### ขั้นตอนที่ 4: ทดสอบ API
-```bash
-# กำหนด API Base URL
-API_URL="https://xxxxxxxxxx.execute-api.ap-southeast-1.amazonaws.com/prod"
-
-# GET ทุก students
-curl $API_URL/students
-
-# GET นักศึกษาคนเดียว
-curl $API_URL/students/1
-
-# GET ด้วย filter
-curl "$API_URL/students?faculty=ICT&min_gpa=3.5"
-
-# POST เพิ่มนักศึกษาใหม่
-curl -X POST $API_URL/students \
-  -H "Content-Type: application/json" \
-  -d '{
-    "student_id": "6401005",
-    "name": "ทดสอบ ระบบ",
-    "email": "test@api.com",
-    "faculty": "ICT",
-    "major": "Cloud Technology",
-    "gpa": 3.60,
-    "enrollment_year": 2564
-  }'
-
-# PUT อัปเดต
-curl -X PUT $API_URL/students/1 \
-  -H "Content-Type: application/json" \
-  -d '{"name": "สมชาย ใจดีมาก", "gpa": 3.65}'
-
-# DELETE ลบนักศึกษา
-curl -X DELETE $API_URL/students/5
-```
-
----
-
-## 🔧 LAB 3-5: Lambda สำหรับงาน Scheduled (CloudWatch Events)
-
-สร้าง Lambda Function สำหรับ **สรุปสถิติรายวัน** (ตัวอย่าง Always Free Use Case):
+**ลบ code เดิมทั้งหมด** แล้ว **วาง code นี้**:
 
 ```python
-# lambda_daily_report.py
 import json
 import pymysql
 import os
@@ -1353,115 +1368,242 @@ def get_db_connection():
     )
 
 def lambda_handler(event, context):
-    """
-    Lambda ที่ถูก trigger โดย EventBridge (CloudWatch Events)
-    ทำงานทุกวันเพื่อสร้างสรุปสถิติ
-    """
-    logger.info("Daily report Lambda triggered")
-    
+    logger.info("Daily report triggered")
     conn = None
     try:
         conn = get_db_connection()
-        report = generate_daily_report(conn)
-        
-        logger.info(f"Daily Report Generated: {json.dumps(report, ensure_ascii=False)}")
-        
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "message": "Daily report generated successfully",
-                "report": report
-            }, ensure_ascii=False)
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) as total FROM students")
+            total = cursor.fetchone()['total']
+
+            cursor.execute("SELECT AVG(gpa) as avg_gpa FROM students")
+            avg_gpa = cursor.fetchone()['avg_gpa']
+
+            cursor.execute("""
+                SELECT faculty, COUNT(*) as count, AVG(gpa) as avg_gpa
+                FROM students GROUP BY faculty ORDER BY count DESC
+            """)
+            by_faculty = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT name, student_id, gpa FROM students
+                ORDER BY gpa DESC LIMIT 5
+            """)
+            top_students = cursor.fetchall()
+
+        report = {
+            "report_date":    datetime.now().strftime("%Y-%m-%d"),
+            "total_students": total,
+            "average_gpa":    round(float(avg_gpa or 0), 2),
+            "by_faculty": [
+                {"faculty": r['faculty'], "count": r['count'],
+                 "avg_gpa": round(float(r['avg_gpa'] or 0), 2)}
+                for r in by_faculty
+            ],
+            "top_5_students": [
+                {"name": s['name'], "student_id": s['student_id'], "gpa": float(s['gpa'])}
+                for s in top_students
+            ]
         }
+
+        logger.info(f"Report: {json.dumps(report, ensure_ascii=False)}")
+        return {"statusCode": 200, "body": json.dumps(report, ensure_ascii=False)}
+
     except Exception as e:
-        logger.error(f"Error generating report: {str(e)}")
+        logger.error(f"Error: {str(e)}")
         raise
     finally:
         if conn:
             conn.close()
-
-def generate_daily_report(conn):
-    with conn.cursor() as cursor:
-        # จำนวนนักศึกษาทั้งหมด
-        cursor.execute("SELECT COUNT(*) as total FROM students")
-        total = cursor.fetchone()['total']
-        
-        # GPA เฉลี่ย
-        cursor.execute("SELECT AVG(gpa) as avg_gpa FROM students")
-        avg_gpa = cursor.fetchone()['avg_gpa']
-        
-        # แจกแจงตาม Faculty
-        cursor.execute("""
-            SELECT faculty, COUNT(*) as count, AVG(gpa) as avg_gpa
-            FROM students
-            GROUP BY faculty
-            ORDER BY count DESC
-        """)
-        by_faculty = cursor.fetchall()
-        
-        # Top 5 นักศึกษา
-        cursor.execute("""
-            SELECT name, student_id, gpa 
-            FROM students 
-            ORDER BY gpa DESC 
-            LIMIT 5
-        """)
-        top_students = cursor.fetchall()
-        
-    return {
-        "report_date": datetime.now().strftime("%Y-%m-%d"),
-        "total_students": total,
-        "average_gpa": round(float(avg_gpa or 0), 2),
-        "by_faculty": [
-            {
-                "faculty": r['faculty'],
-                "count": r['count'],
-                "avg_gpa": round(float(r['avg_gpa'] or 0), 2)
-            }
-            for r in by_faculty
-        ],
-        "top_5_students": [
-            {"name": s['name'], "student_id": s['student_id'], "gpa": float(s['gpa'])}
-            for s in top_students
-        ]
-    }
 ```
 
-### ตั้ง Schedule ด้วย EventBridge
-1. Lambda Function → **Configuration** → **Triggers** → **Add trigger**
-2. Trigger source: **EventBridge (CloudWatch Events)**
-3. Rule: **Create a new rule**
-4. Rule name: `ict24267-daily-report`
-5. Schedule expression: `cron(0 1 * * ? *)` (ทุกวัน 01:00 UTC = 08:00 น. ไทย)
-6. Add
+**3.** คลิก **Deploy**
+
+**4.** ตั้ง Environment Variables และ VPC เหมือน Function ก่อนหน้า แต่ **Function นี้ไม่ต้องเพิ่ม Layer** (pymysql ไม่ได้ใช้ใน daily report) — รอก่อน ดูว่า test ผ่านไหม ถ้า error `No module named pymysql` ให้เพิ่ม Layer เหมือนเดิม
+
+### ขั้นตอนที่ 3: ตั้ง Schedule ให้รันทุกวัน
+
+**1.** แท็บ **Configuration** → **Triggers** → **Add trigger**
+
+**2.** ตั้งค่า:
+   - Trigger source: **EventBridge (CloudWatch Events)**
+   - Rule: **Create a new rule**
+   - Rule name: `ict24267-daily-report`
+   - Schedule expression: `cron(0 1 * * ? *)`
+     > หมายความว่า: รันทุกวัน เวลา 01:00 UTC = **08:00 น. ของไทย**
+
+**3.** คลิก **Add**
+
+✅ ตั้งแต่นี้ Function จะรันอัตโนมัติทุกเช้า
+
+---
+
+## 🔧 LAB 3-6: สร้าง API Gateway
+
+API Gateway คือ "ประตู" ที่รับ HTTP Request จาก Internet แล้วส่งต่อให้ Lambda
+
+### ขั้นตอนที่ 1: สร้าง REST API
+
+**1.** AWS Console → ค้นหา **API Gateway** → คลิก **API Gateway**
+
+**2.** คลิก **Create API**
+
+**3.** เลือก **REST API** (ไม่ใช่ Private) → คลิก **Build**
+
+**4.** ตั้งค่า:
+   - API name: `ict24267-student-api`
+   - Endpoint Type: **Regional**
+
+**5.** คลิก **Create API**
+
+### ขั้นตอนที่ 2: สร้าง Resource `/students`
+
+**1.** เมนูซ้าย → **Resources** → คลิก **Actions** → **Create Resource**
+
+**2.** ตั้งค่า:
+   - Resource Name: `students`
+   - Resource Path: `students`
+   - ✅ ติ๊ก **Enable API Gateway CORS**
+
+**3.** คลิก **Create Resource**
+
+### ขั้นตอนที่ 3: เพิ่ม Method GET บน `/students`
+
+**1.** คลิกเลือก `/students` → **Actions** → **Create Method** → เลือก **GET** → คลิก ✓
+
+**2.** ตั้งค่า:
+   - Integration type: **Lambda Function**
+   - Lambda Function: `ict24267-get-students`
+
+**3.** คลิก **Save** → **OK** (อนุญาตให้เรียก Lambda)
+
+### ขั้นตอนที่ 4: เพิ่ม Method POST บน `/students`
+
+**1.** คลิกเลือก `/students` → **Actions** → **Create Method** → **POST** → ✓
+
+**2.** Lambda Function: `ict24267-manage-students` → **Save** → **OK**
+
+### ขั้นตอนที่ 5: สร้าง Resource `/students/{id}`
+
+**1.** คลิกเลือก `/students` → **Actions** → **Create Resource**
+
+**2.** ตั้งค่า:
+   - Resource Name: `student`
+   - Resource Path: **`{id}`** (ต้องมีวงเล็บปีกกา)
+   - ✅ ติ๊ก **Enable API Gateway CORS**
+
+**3.** คลิก **Create Resource**
+
+### ขั้นตอนที่ 6: เพิ่ม Methods บน `/students/{id}`
+
+เพิ่ม **3 methods** ทีละอัน โดยทั้งหมดชี้ไปที่ `ict24267-manage-students`:
+
+| Method | Lambda Function |
+|---|---|
+| GET | `ict24267-get-students` |
+| PUT | `ict24267-manage-students` |
+| DELETE | `ict24267-manage-students` |
+
+> วิธีเพิ่มแต่ละ method: คลิก `{id}` → Actions → Create Method → เลือก Method → ✓ → ใส่ชื่อ Lambda → Save → OK
+
+### ขั้นตอนที่ 7: Deploy API
+
+**1.** คลิก **Actions** → **Deploy API**
+
+**2.** ตั้งค่า:
+   - Deployment stage: **[New Stage]**
+   - Stage name: `prod`
+
+**3.** คลิก **Deploy**
+
+**4.** ✅ **บันทึก Invoke URL** ที่ได้ เช่น:
+   `https://abc12345.execute-api.ap-southeast-1.amazonaws.com/prod`
+
+### ขั้นตอนที่ 8: ทดสอบ API ผ่าน Browser และ curl
+
+แทนที่ `YOUR_API_URL` ด้วย URL ที่ได้จากขั้นตอนที่ 7:
+
+```bash
+# กำหนด URL (เปลี่ยนเป็น URL จริงของคุณ)
+API_URL="https://abc12345.execute-api.ap-southeast-1.amazonaws.com/prod"
+
+# ทดสอบ 1: ดึงนักศึกษาทั้งหมด
+curl $API_URL/students
+
+# ทดสอบ 2: ดึงนักศึกษา ID 1
+curl $API_URL/students/1
+
+# ทดสอบ 3: กรองตาม faculty
+curl "$API_URL/students?faculty=ICT"
+
+# ทดสอบ 4: เพิ่มนักศึกษาใหม่
+curl -X POST $API_URL/students \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":"6401005","name":"ทดสอบ API","faculty":"ICT","major":"Cloud","gpa":3.6}'
+
+# ทดสอบ 5: แก้ไขนักศึกษา ID 1
+curl -X PUT $API_URL/students/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"สมชาย ใจดีมาก","gpa":3.9}'
+
+# ทดสอบ 6: ลบนักศึกษา (ใช้ ID ของนักศึกษาที่เพิ่งสร้าง ทดสอบ 4)
+curl -X DELETE $API_URL/students/5
+```
+
+> 💡 **ทดสอบง่ายๆ ผ่าน Browser**: วางลิงก์ `https://...amazonaws.com/prod/students` ในช่อง URL ของ browser เลย — ควรเห็น JSON รายชื่อนักศึกษา
 
 ---
 
 ## 📝 แบบฝึกหัด Week 3
 
-### แบบฝึกหัดที่ 1: เพิ่ม Lambda Function ใหม่
-สร้าง Lambda Function ชื่อ `ict24267-search-students` ที่:
-- รับ query parameter `keyword`
-- ค้นหาจากทั้ง `name` และ `student_id`
-- Return รายการที่ตรงกัน
+### แบบฝึกหัดที่ 1: เพิ่ม Lambda Function ค้นหานักศึกษา
+
+สร้าง Lambda Function ชื่อ `ict24267-search-students` โดยใช้ template นี้ (วาง code แล้วเติมในส่วน TODO):
 
 ```python
-# Template ให้เติมให้สมบูรณ์
+import json
+import pymysql
+import os
+
+def get_db_connection():
+    return pymysql.connect(
+        host=os.environ['DB_HOST'],
+        port=int(os.environ.get('DB_PORT', 3306)),
+        database=os.environ['DB_NAME'],
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASSWORD'],
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
 def lambda_handler(event, context):
     query_params = event.get('queryStringParameters') or {}
     keyword = query_params.get('keyword', '')
-    
-    # TODO: เขียน SQL query ที่ใช้ LIKE เพื่อค้นหา
-    # TODO: Return ผลลัพธ์ในรูปแบบที่ถูกต้อง
-    pass
+
+    if not keyword:
+        return {"statusCode": 400,
+                "body": json.dumps({"status": "error", "message": "กรุณาระบุ keyword"})}
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            # TODO: เติม SQL ที่ใช้ LIKE เพื่อค้นหาจากทั้ง name และ student_id
+            #힌트: WHERE name LIKE %s OR student_id LIKE %s
+            # TODO: return ผลลัพธ์ในรูปแบบ {"status": "success", "data": [...]}
+            pass
+    finally:
+        if conn:
+            conn.close()
 ```
 
-### แบบฝึกหัดที่ 2: API Gateway Throttling
-1. ไปที่ **API Gateway → ict24267-student-api → Stages → prod**
-2. เปิด **Default Method Throttling**
-3. ตั้ง Rate: `100`, Burst: `200`
-4. Save Changes
-5. อธิบายว่า Throttling มีประโยชน์อย่างไร
+### แบบฝึกหัดที่ 2: ตั้งค่า Throttling บน API Gateway
+
+1. API Gateway → `ict24267-student-api` → **Stages** → `prod`
+2. แท็บ **Default Route Settings**
+3. ตั้ง **Throttling Rate**: `100` และ **Burst**: `200`
+4. คลิก **Save Changes**
+5. ตอบคำถาม: Throttling ช่วยป้องกันอะไร?
 
 ### คำถามท้ายบท Week 3
 
@@ -1489,29 +1631,39 @@ def lambda_handler(event, context):
 
 ## ระยะเวลา: 3 ชั่วโมง
 
+> 💡 **Week 4 ภาพรวม**: สัปดาห์นี้ไม่ต้องเขียน code ใหม่มาก แต่จะเน้น **เพิ่มความปลอดภัย + ติดตั้ง Monitoring + สร้าง Frontend** ให้ระบบพร้อมใช้งานจริง
+
 ---
 
-## 🔧 LAB 4-1: Secrets Manager สำหรับ Database Credentials
+## 🔧 LAB 4-1: เก็บ Password อย่างปลอดภัยด้วย SSM Parameter Store
 
-> ⚠️ AWS Secrets Manager **ไม่ฟรี** ($0.40/secret/month) แต่มี **30 วันทดลองฟรี**  
-> ทางเลือกฟรี: ใช้ **SSM Parameter Store (Standard)** ซึ่ง Free Tier รองรับ
+ใน Week 3 เราเก็บ DB Password ไว้ใน Environment Variables ซึ่งยังไม่ปลอดภัยพอ
+Week 4 เราจะย้าย Password ไปเก็บใน **SSM Parameter Store** ซึ่ง encrypted และ audit ได้
 
-### ขั้นตอนที่ 0: ตรวจสอบ IAM Permission ของ Lambda Role
+> ✅ **SSM Parameter Store ฟรี** (Standard tier) — ไม่มีค่าใช้จ่าย
 
-> ⚠️ **สำคัญ**: ก่อนรัน Code ด้านล่างได้ ต้องแน่ใจว่า `ict24267-lambda-role` มี Policy `AmazonSSMReadOnlyAccess` แล้ว (ถ้าทำตาม LAB 3-1 ที่อัปเดตแล้วจะมีครบ ไม่ต้องทำซ้ำ)
+### ขั้นตอนที่ 1: ตรวจสอบ IAM Permission
+
+> ⚠️ ถ้าทำ LAB 3-1 ครบแล้ว (เพิ่ม `AmazonSSMReadOnlyAccess` ไว้แล้ว) ข้ามไปขั้นตอนที่ 2 ได้เลย
 
 หากยังไม่ได้เพิ่ม:
-1. IAM → **Roles** → `ict24267-lambda-role` → **Add permissions**
-2. เลือก `AmazonSSMReadOnlyAccess` → **Add permissions**
+1. IAM → **Roles** → คลิก `ict24267-lambda-role`
+2. **Add permissions** → **Attach policies**
+3. ค้นหา `SSMReadOnly` → เลือก `AmazonSSMReadOnlyAccess` → **Add permissions**
 
-### ใช้ SSM Parameter Store (Free)
+### ขั้นตอนที่ 2: บันทึก Password ลง SSM
 
-#### สร้าง Parameters ใน SSM ก่อน
+**วิธีที่ 1: ใช้ AWS CloudShell (ง่ายที่สุด — แนะนำ)**
+
+**1.** AWS Console → คลิกไอคอน **CloudShell** (รูปหน้าต่าง Terminal) มุมบนขวา
+
+**2.** รันทีละคำสั่ง (แทนที่ endpoint RDS จริงในบรรทัดแรก):
+
 ```bash
-# รันบน AWS CLI หรือ CloudShell
+# เปลี่ยน YOUR_RDS_ENDPOINT เป็น endpoint จริงของคุณ
 aws ssm put-parameter \
     --name "/ict24267/db/host" \
-    --value "ict24267-db.xxxxxxxxxx.ap-southeast-1.rds.amazonaws.com" \
+    --value "YOUR_RDS_ENDPOINT" \
     --type "SecureString" \
     --region ap-southeast-1
 
@@ -1529,18 +1681,38 @@ aws ssm put-parameter \
 
 aws ssm put-parameter \
     --name "/ict24267/db/password" \
-    --value "ICT24267" \
+    --value "ICT24267@2568" \
     --type "SecureString" \
     --region ap-southeast-1
 ```
 
-#### อัปเดต Lambda Functions ให้ดึง credentials จาก SSM
+**3.** ✅ แต่ละคำสั่งสำเร็จจะขึ้น `"Version": 1`
 
-แทนที่จะเก็บ DB credentials ไว้ใน Environment Variables โดยตรง เราจะดึงจาก SSM แทน
-ให้นำ code ด้านล่างนี้ไปแทนที่ `get_db_connection()` ใน **ทั้งสอง Lambda Functions** (`ict24267-get-students` และ `ict24267-manage-students`):
+**วิธีที่ 2: ใช้ AWS Console (ถ้าไม่ถนัด CLI)**
+
+1. ค้นหา **Systems Manager** → **Parameter Store** → **Create parameter**
+2. สร้างทีละ parameter ตามตารางด้านล่าง เลือก Type: **SecureString**
+
+| Name | Value |
+|---|---|
+| `/ict24267/db/host` | endpoint RDS ของคุณ |
+| `/ict24267/db/name` | `student_db` |
+| `/ict24267/db/user` | `admin` |
+| `/ict24267/db/password` | `ICT24267@2568` |
+
+### ขั้นตอนที่ 3: อัปเดต Lambda Functions ให้ดึง Password จาก SSM
+
+ทำกับ **ทั้ง 2 Functions** (`ict24267-get-students` และ `ict24267-manage-students`):
+
+**1.** Lambda → เปิด Function → แท็บ **Code**
+
+**2.** **ลบ code เดิมทั้งหมด** แล้ว **วาง code ใหม่ด้านล่าง**
+
+---
+
+**สำหรับ `ict24267-get-students` — วาง code นี้ทั้งหมด:**
 
 ```python
-# อัปเดต lambda_get_students.py และ lambda_manage_students.py
 import json
 import pymysql
 import boto3
@@ -1550,117 +1722,293 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# ✅ Cache credentials ไว้ใน module-level variable
-# เพื่อไม่ต้องเรียก SSM ทุกครั้งที่ Lambda invoked (ลด latency และ API calls)
+# เก็บ credentials ไว้ในหน่วยความจำ ไม่ต้องเรียก SSM ซ้ำทุกครั้ง
 _db_credentials = None
 
 def get_db_credentials():
-    """
-    ดึง Database credentials จาก AWS SSM Parameter Store
-    ปลอดภัยกว่าการเก็บใน Environment Variables เพราะ encrypted และ audit trail ได้
-    """
     global _db_credentials
     if _db_credentials:
-        return _db_credentials          # ✅ ใช้ cached credentials ถ้ามีแล้ว
-
+        return _db_credentials
     ssm = boto3.client('ssm', region_name=os.environ.get('AWS_REGION', 'ap-southeast-1'))
-    
     response = ssm.get_parameters(
-        Names=[
-            '/ict24267/db/host',
-            '/ict24267/db/name',
-            '/ict24267/db/user',
-            '/ict24267/db/password'
-        ],
+        Names=['/ict24267/db/host', '/ict24267/db/name',
+               '/ict24267/db/user', '/ict24267/db/password'],
         WithDecryption=True
     )
-    
-    params = {p['Name'].split('/')[-1]: p['Value'] 
-              for p in response['Parameters']}
-    
+    params = {p['Name'].split('/')[-1]: p['Value'] for p in response['Parameters']}
     _db_credentials = {
-        'host': params['host'],
-        'database': params['name'],
-        'user': params['user'],
-        'password': params['password']
+        'host': params['host'], 'database': params['name'],
+        'user': params['user'], 'password': params['password']
     }
     return _db_credentials
 
-
 def get_db_connection():
-    """สร้าง RDS Connection โดยดึง credentials จาก SSM"""
     creds = get_db_credentials()
     return pymysql.connect(
-        host=creds['host'],
-        port=int(os.environ.get('DB_PORT', 3306)),
-        database=creds['database'],
-        user=creds['user'],
-        password=creds['password'],
-        charset='utf8mb4',
-        cursorclass=pymysql.cursors.DictCursor,
-        connect_timeout=10
+        host=creds['host'], port=3306,
+        database=creds['database'], user=creds['user'],
+        password=creds['password'], charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor, connect_timeout=10
     )
 
-# หมายเหตุ: ส่วนที่เหลือของ lambda_handler, create_student, update_student,
-# delete_student และ build_response ยังคงเหมือนเดิมจาก Week 3
-# เปลี่ยนแค่ get_db_connection() เท่านั้น
+def build_response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+        "body": json.dumps(body, ensure_ascii=False, default=str)
+    }
+
+def lambda_handler(event, context):
+    logger.info(f"Event: {json.dumps(event)}")
+    path_params  = event.get('pathParameters') or {}
+    query_params = event.get('queryStringParameters') or {}
+    student_id   = path_params.get('id')
+    faculty      = query_params.get('faculty')
+    min_gpa      = query_params.get('min_gpa')
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            if student_id:
+                cursor.execute("SELECT * FROM students WHERE id = %s", (student_id,))
+                student = cursor.fetchone()
+                if not student:
+                    return build_response(404, {"status": "error", "message": f"ไม่พบนักศึกษา ID {student_id}"})
+                student['gpa'] = float(student['gpa']) if student['gpa'] else 0.0
+                return build_response(200, {"status": "success", "data": student})
+            else:
+                query  = "SELECT * FROM students WHERE 1=1"
+                params = []
+                if faculty:
+                    query += " AND faculty = %s"
+                    params.append(faculty)
+                if min_gpa:
+                    query += " AND gpa >= %s"
+                    params.append(float(min_gpa))
+                query += " ORDER BY student_id"
+                cursor.execute(query, params)
+                students = cursor.fetchall()
+                for s in students:
+                    s['gpa'] = float(s['gpa']) if s['gpa'] else 0.0
+                return build_response(200, {"status": "success", "count": len(students), "data": students})
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        return build_response(500, {"status": "error", "message": str(e)})
+    finally:
+        if conn:
+            conn.close()
 ```
 
-> 💡 **การ Cache credentials**: Lambda Function อาจถูก reuse หลาย invocations (warm start)
-> การเก็บ `_db_credentials` ใน module-level ทำให้เรียก SSM เพียงครั้งเดียวต่อ container lifecycle
-> ประหยัดเวลาและลด SSM API calls ลงได้มาก
+---
+
+**สำหรับ `ict24267-manage-students` — วาง code นี้ทั้งหมด:**
+
+```python
+import json
+import pymysql
+import boto3
+import os
+import logging
+from datetime import datetime
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+_db_credentials = None
+
+def get_db_credentials():
+    global _db_credentials
+    if _db_credentials:
+        return _db_credentials
+    ssm = boto3.client('ssm', region_name=os.environ.get('AWS_REGION', 'ap-southeast-1'))
+    response = ssm.get_parameters(
+        Names=['/ict24267/db/host', '/ict24267/db/name',
+               '/ict24267/db/user', '/ict24267/db/password'],
+        WithDecryption=True
+    )
+    params = {p['Name'].split('/')[-1]: p['Value'] for p in response['Parameters']}
+    _db_credentials = {
+        'host': params['host'], 'database': params['name'],
+        'user': params['user'], 'password': params['password']
+    }
+    return _db_credentials
+
+def get_db_connection():
+    creds = get_db_credentials()
+    return pymysql.connect(
+        host=creds['host'], port=3306,
+        database=creds['database'], user=creds['user'],
+        password=creds['password'], charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor, connect_timeout=10
+    )
+
+def build_response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+        "body": json.dumps(body, ensure_ascii=False, default=str)
+    }
+
+def lambda_handler(event, context):
+    logger.info(f"Event: {json.dumps(event)}")
+    http_method = event.get('httpMethod', '')
+    path_params = event.get('pathParameters') or {}
+    student_id  = path_params.get('id')
+    body = {}
+    if event.get('body'):
+        body = json.loads(event['body'])
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        if http_method == 'POST':
+            return create_student(conn, body)
+        elif http_method == 'PUT' and student_id:
+            return update_student(conn, student_id, body)
+        elif http_method == 'DELETE' and student_id:
+            return delete_student(conn, student_id)
+        else:
+            return build_response(400, {"status": "error", "message": "คำขอไม่ถูกต้อง"})
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        return build_response(500, {"status": "error", "message": str(e)})
+    finally:
+        if conn:
+            conn.close()
+
+def create_student(conn, data):
+    for field in ['student_id', 'name']:
+        if not data.get(field):
+            return build_response(400, {"status": "error", "message": f"กรุณากรอก {field}"})
+    current_thai_year = datetime.now().year + 543
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """INSERT INTO students (student_id, name, email, faculty, major, gpa, enrollment_year)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            (data['student_id'], data['name'], data.get('email', ''),
+             data.get('faculty', ''), data.get('major', ''),
+             data.get('gpa', 0.00), data.get('enrollment_year', current_thai_year))
+        )
+        conn.commit()
+        new_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM students WHERE id = %s", (new_id,))
+        student = cursor.fetchone()
+        student['gpa'] = float(student['gpa']) if student['gpa'] else 0.0
+    return build_response(201, {"status": "success", "data": student})
+
+def update_student(conn, student_id, data):
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT id FROM students WHERE id = %s", (student_id,))
+        if not cursor.fetchone():
+            return build_response(404, {"status": "error", "message": "ไม่พบนักศึกษา"})
+        cursor.execute(
+            """UPDATE students SET name=%s, email=%s, faculty=%s, major=%s, gpa=%s
+               WHERE id=%s""",
+            (data.get('name'), data.get('email'), data.get('faculty'),
+             data.get('major'), data.get('gpa'), student_id)
+        )
+        conn.commit()
+        cursor.execute("SELECT * FROM students WHERE id = %s", (student_id,))
+        student = cursor.fetchone()
+        student['gpa'] = float(student['gpa']) if student['gpa'] else 0.0
+    return build_response(200, {"status": "success", "data": student})
+
+def delete_student(conn, student_id):
+    with conn.cursor() as cursor:
+        affected = cursor.execute("DELETE FROM students WHERE id = %s", (student_id,))
+        conn.commit()
+    if affected == 0:
+        return build_response(404, {"status": "error", "message": "ไม่พบนักศึกษา"})
+    return build_response(200, {"status": "success", "message": f"ลบนักศึกษา ID {student_id} แล้ว"})
 ```
+
+**4.** คลิก **Deploy** ทั้งสอง Function
+
+**5.** ✅ ตอนนี้สามารถ **ลบ Environment Variables** `DB_PASSWORD` และ `DB_HOST` ออกจาก Lambda ได้แล้ว (ไม่จำเป็นอีกต่อไป) — แต่ยังเก็บ `DB_PORT` ไว้ได้
+
+### ขั้นตอนที่ 4: ทดสอบว่าดึง Password จาก SSM ได้จริง
+
+**1.** เปิด Function `ict24267-get-students` → แท็บ **Test**
+
+**2.** รัน test เดิม (`test-get-all`) อีกครั้ง
+
+**3.** ✅ ถ้าเห็น `"status": "success"` แสดงว่าดึง credentials จาก SSM ได้แล้ว
 
 ---
 
 ## 🔧 LAB 4-2: CloudWatch Dashboard และ Alarms
 
-### สร้าง CloudWatch Dashboard
-1. AWS Console → **CloudWatch** → **Dashboards** → **Create dashboard**
-2. Name: `ICT24267-Student-System`
-3. เพิ่ม Widgets:
+### ขั้นตอนที่ 1: สร้าง Dashboard
 
-**Widget 1: EC2 CPU Utilization**
-- Add widget → Line
-- Metrics → EC2 → Per-Instance Metrics
-- CPUUtilization → Instance: `ict24267-webserver`
+**1.** AWS Console → ค้นหา **CloudWatch** → เมนูซ้าย **Dashboards** → **Create dashboard**
 
-**Widget 2: Lambda Invocations**
-- Add widget → Line
-- Metrics → Lambda → By Function Name
-- Invocations, Duration, Errors
-- Function: `ict24267-get-students`, `ict24267-manage-students`
+**2.** Dashboard name: `ICT24267-Student-System` → **Create dashboard**
 
-**Widget 3: API Gateway Requests**
-- Add widget → Number
-- Metrics → API Gateway → By Stage
-- Count, 4XXError, 5XXError
+**3.** เพิ่ม Widget ทีละอัน โดยคลิก **Add widget** แต่ละครั้ง:
 
-**Widget 4: RDS Connections**
-- Add widget → Line
-- Metrics → RDS → Per-Database Metrics
-- DatabaseConnections → DB: `ict24267-db`
+**Widget 1 — EC2 CPU:**
+- เลือก **Line** → **Next**
+- Metrics → **EC2** → **Per-Instance Metrics** → หา `CPUUtilization` ของ `ict24267-webserver` → ติ๊ก → **Create widget**
 
-### สร้าง CloudWatch Alarms
-```
-1. CloudWatch → Alarms → Create alarm
+**Widget 2 — Lambda Invocations:**
+- **Add widget** → **Line** → **Next**
+- Metrics → **Lambda** → **By Function Name** → ติ๊ก `Invocations` และ `Errors` ของ `ict24267-get-students` และ `ict24267-manage-students` → **Create widget**
 
-Alarm 1: EC2 High CPU
-- Metric: EC2 > CPUUtilization > ict24267-webserver
-- Condition: > 80% for 2 consecutive periods (5 min each)
-- Action: Send notification to email (SNS)
+**Widget 3 — API Gateway:**
+- **Add widget** → **Number** → **Next**
+- Metrics → **API Gateway** → **By Stage** → ติ๊ก `Count`, `4XXError`, `5XXError` → **Create widget**
 
-Alarm 2: Lambda Errors
-- Metric: Lambda > Errors > ict24267-get-students
-- Condition: >= 5 errors in 5 minutes
-- Action: Send notification to email
-```
+**Widget 4 — RDS Connections:**
+- **Add widget** → **Line** → **Next**
+- Metrics → **RDS** → **Per-Database Metrics** → `DatabaseConnections` ของ `ict24267-db` → **Create widget**
+
+**4.** คลิก **Save dashboard**
+
+### ขั้นตอนที่ 2: สร้าง Alarm แจ้งเตือนเมื่อ CPU สูง
+
+**1.** CloudWatch → เมนูซ้าย **Alarms** → **Create alarm**
+
+**2.** คลิก **Select metric** → **EC2** → **Per-Instance Metrics** → เลือก `CPUUtilization` ของ `ict24267-webserver` → **Select metric**
+
+**3.** ตั้งค่า Condition:
+   - Threshold type: **Static**
+   - Whenever CPUUtilization is: **Greater than**
+   - than: `80`
+
+**4.** คลิก **Next** → ส่วน Notification:
+   - Alarm state trigger: **In alarm**
+   - Send notification to: **Create new topic**
+   - Topic name: `ict24267-alerts`
+   - Email endpoint: **ใส่ Email ของคุณ**
+   - คลิก **Create topic**
+
+**5.** คลิก **Next** → Alarm name: `ict24267-high-cpu` → **Create alarm**
+
+**6.** ✅ ไปเช็ค Email แล้วคลิก **Confirm subscription** (AWS จะส่ง email มาให้ยืนยัน)
+
+### ขั้นตอนที่ 3: สร้าง Alarm แจ้งเตือนเมื่อ Lambda Error
+
+**1.** CloudWatch → **Create alarm** → **Select metric**
+
+**2.** **Lambda** → **By Function Name** → `ict24267-get-students` → `Errors` → **Select metric**
+
+**3.** Condition: **Greater than or equal** → `5`
+
+**4.** Notification: เลือก SNS topic `ict24267-alerts` ที่สร้างไว้แล้ว
+
+**5.** Alarm name: `ict24267-lambda-errors` → **Create alarm**
 
 ---
 
-## 🔧 LAB 4-3: สร้าง Frontend HTML สำหรับ Student System
+## 🔧 LAB 4-3: สร้าง Frontend HTML
 
-### สร้างไฟล์ `index.html` บน EC2
+Frontend คือหน้าเว็บที่นักศึกษาจะใช้จัดการข้อมูลแทนการพิมพ์ curl
+
+### ขั้นตอนที่ 1: สร้างไฟล์ HTML บน EC2
+
+SSH เข้า EC2 แล้วรันคำสั่งนี้ **ทั้งหมดในครั้งเดียว** (copy ทั้ง block):
+
 ```bash
 sudo mkdir -p /var/www/html
 sudo tee /var/www/html/index.html << 'HTMLEOF'
@@ -1676,7 +2024,6 @@ sudo tee /var/www/html/index.html << 'HTMLEOF'
         .header {
             background: linear-gradient(135deg, #232f3e, #ff9900);
             color: white; padding: 20px 40px;
-            display: flex; align-items: center; gap: 15px;
         }
         .header h1 { font-size: 1.5em; }
         .header p { font-size: 0.9em; opacity: 0.8; }
@@ -1690,233 +2037,136 @@ sudo tee /var/www/html/index.html << 'HTMLEOF'
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         .form-group { display: flex; flex-direction: column; gap: 4px; }
         label { font-size: 0.85em; font-weight: 600; color: #555; }
-        input, select {
-            padding: 8px 12px; border: 1px solid #ddd;
-            border-radius: 6px; font-size: 0.9em;
-        }
-        .btn {
-            padding: 10px 20px; border: none; border-radius: 6px;
-            cursor: pointer; font-weight: 600; transition: all 0.2s;
-        }
+        input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9em; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .btn-primary { background: #ff9900; color: white; }
         .btn-danger { background: #dc3545; color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .btn:hover { opacity: 0.85; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9em; }
-        th { background: #f8f9fa; font-weight: 700; color: #333; }
-        tr:hover { background: #fff8f0; }
-        .badge {
-            padding: 2px 8px; border-radius: 12px; font-size: 0.8em;
-            font-weight: 600;
-        }
-        .badge-high { background: #d4edda; color: #155724; }
-        .badge-mid { background: #fff3cd; color: #856404; }
-        .badge-low { background: #f8d7da; color: #721c24; }
+        th { background: #f8f9fa; font-weight: 700; }
         .api-config { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .stat-card { background: #f8f9fa; border-radius: 8px; padding: 16px; text-align: center; }
         .stat-number { font-size: 2em; font-weight: 700; color: #ff9900; }
-        .stat-label { font-size: 0.85em; color: #666; }
         #message { padding: 10px; border-radius: 6px; margin: 10px 0; display: none; }
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
+        .badge { padding: 2px 8px; border-radius: 12px; font-size: 0.8em; font-weight: 600; }
+        .badge-high { background: #d4edda; color: #155724; }
+        .badge-mid { background: #fff3cd; color: #856404; }
+        .badge-low { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
     <div class="header">
-        <div>
-            <h1>🎓 Student Record System</h1>
-            <p>ICT 24267 Cloud Computing | ภาคการศึกษา 2/2568 | อ.อำนาจ คงเจริญถิ่น</p>
-        </div>
+        <h1>🎓 Student Record System</h1>
+        <p>ICT 24267 Cloud Computing | ภาคการศึกษา 2/2568 | อ.อำนาจ คงเจริญถิ่น</p>
     </div>
-    
+
     <div class="container">
-        <!-- API Configuration -->
         <div class="api-config">
-            ⚙️ <strong>ตั้งค่า API URL:</strong>
-            <input type="text" id="apiUrl" 
-                   style="width:400px; margin-left:10px;"
-                   placeholder="https://xxxxxxxxxx.execute-api.ap-southeast-1.amazonaws.com/prod"
-                   value="">
+            ⚙️ <strong>API URL:</strong>
+            <input type="text" id="apiUrl" style="width:420px; margin-left:10px;"
+                   placeholder="https://xxxxxxxxxx.execute-api.ap-southeast-1.amazonaws.com/prod">
             <button class="btn btn-primary" onclick="loadStudents()" style="margin-left:8px;">โหลดข้อมูล</button>
         </div>
 
-        <!-- Stats -->
         <div class="card">
             <h2>📊 สถิติภาพรวม</h2>
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalStudents">-</div>
-                    <div class="stat-label">นักศึกษาทั้งหมด</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="avgGpa">-</div>
-                    <div class="stat-label">GPA เฉลี่ย</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="topGpa">-</div>
-                    <div class="stat-label">GPA สูงสุด</div>
-                </div>
+                <div class="stat-card"><div class="stat-number" id="totalStudents">-</div><div>นักศึกษาทั้งหมด</div></div>
+                <div class="stat-card"><div class="stat-number" id="avgGpa">-</div><div>GPA เฉลี่ย</div></div>
+                <div class="stat-card"><div class="stat-number" id="topGpa">-</div><div>GPA สูงสุด</div></div>
             </div>
         </div>
 
-        <!-- Add Student Form -->
         <div class="card">
             <h2>➕ เพิ่มนักศึกษาใหม่</h2>
             <div id="message"></div>
             <div class="form-row">
-                <div class="form-group">
-                    <label>รหัสนักศึกษา *</label>
-                    <input type="text" id="newStudentId" placeholder="เช่น 6401006">
-                </div>
-                <div class="form-group">
-                    <label>ชื่อ-นามสกุล *</label>
-                    <input type="text" id="newName" placeholder="ชื่อภาษาไทย">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="newEmail" placeholder="student@example.com">
-                </div>
-                <div class="form-group">
-                    <label>คณะ</label>
-                    <input type="text" id="newFaculty" placeholder="ICT" value="ICT">
-                </div>
-                <div class="form-group">
-                    <label>สาขา</label>
-                    <input type="text" id="newMajor" placeholder="Computer Science">
-                </div>
-                <div class="form-group">
-                    <label>GPA</label>
-                    <input type="number" id="newGpa" min="0" max="4" step="0.01" placeholder="3.50">
-                </div>
+                <div class="form-group"><label>รหัสนักศึกษา *</label><input type="text" id="newStudentId" placeholder="6401006"></div>
+                <div class="form-group"><label>ชื่อ-นามสกุล *</label><input type="text" id="newName" placeholder="ชื่อภาษาไทย"></div>
+                <div class="form-group"><label>Email</label><input type="email" id="newEmail" placeholder="student@example.com"></div>
+                <div class="form-group"><label>คณะ</label><input type="text" id="newFaculty" value="ICT"></div>
+                <div class="form-group"><label>สาขา</label><input type="text" id="newMajor" placeholder="Computer Science"></div>
+                <div class="form-group"><label>GPA</label><input type="number" id="newGpa" min="0" max="4" step="0.01" placeholder="3.50"></div>
             </div>
             <button class="btn btn-primary" onclick="addStudent()">เพิ่มนักศึกษา</button>
         </div>
 
-        <!-- Student List -->
         <div class="card">
             <h2>📋 รายชื่อนักศึกษา</h2>
-            <table id="studentsTable">
-                <thead>
-                    <tr>
-                        <th>รหัสนักศึกษา</th>
-                        <th>ชื่อ-นามสกุล</th>
-                        <th>สาขา</th>
-                        <th>GPA</th>
-                        <th>จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody id="studentsBody">
-                    <tr><td colspan="5" style="text-align:center">กรุณาตั้งค่า API URL แล้วกด "โหลดข้อมูล"</td></tr>
-                </tbody>
+            <table>
+                <thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>สาขา</th><th>GPA</th><th>จัดการ</th></tr></thead>
+                <tbody id="studentsBody"><tr><td colspan="5" style="text-align:center">กรุณาตั้งค่า API URL แล้วกด "โหลดข้อมูล"</td></tr></tbody>
             </table>
         </div>
     </div>
 
     <script>
-        const API_URL = () => document.getElementById('apiUrl').value.replace(/\/$/, '');
+        const API = () => document.getElementById('apiUrl').value.replace(/\/$/, '');
 
-        function showMessage(msg, type) {
+        function showMsg(msg, type) {
             const el = document.getElementById('message');
-            el.textContent = msg;
-            el.className = type;
-            el.style.display = 'block';
+            el.textContent = msg; el.className = type; el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 3000);
         }
 
-        function getGpaBadge(gpa) {
-            if (gpa >= 3.5) return `<span class="badge badge-high">${gpa}</span>`;
-            if (gpa >= 2.5) return `<span class="badge badge-mid">${gpa}</span>`;
-            return `<span class="badge badge-low">${gpa}</span>`;
+        function gpaBadge(gpa) {
+            const cls = gpa >= 3.5 ? 'badge-high' : gpa >= 2.5 ? 'badge-mid' : 'badge-low';
+            return `<span class="badge ${cls}">${gpa}</span>`;
         }
 
         async function loadStudents() {
             try {
-                const res = await fetch(`${API_URL()}/students`);
+                const res  = await fetch(`${API()}/students`);
                 const data = await res.json();
-                const students = data.data || [];
-                
-                // Update stats
-                document.getElementById('totalStudents').textContent = students.length;
-                if (students.length > 0) {
-                    const avgGpa = students.reduce((s, st) => s + st.gpa, 0) / students.length;
-                    const maxGpa = Math.max(...students.map(s => s.gpa));
-                    document.getElementById('avgGpa').textContent = avgGpa.toFixed(2);
-                    document.getElementById('topGpa').textContent = maxGpa.toFixed(2);
+                const list = data.data || [];
+                document.getElementById('totalStudents').textContent = list.length;
+                if (list.length > 0) {
+                    document.getElementById('avgGpa').textContent = (list.reduce((s,x) => s+x.gpa,0)/list.length).toFixed(2);
+                    document.getElementById('topGpa').textContent = Math.max(...list.map(s=>s.gpa)).toFixed(2);
                 }
-                
-                // Render table
-                const tbody = document.getElementById('studentsBody');
-                tbody.innerHTML = students.map(s => `
+                document.getElementById('studentsBody').innerHTML = list.map(s => `
                     <tr>
-                        <td>${s.student_id}</td>
-                        <td>${s.name}</td>
+                        <td>${s.student_id}</td><td>${s.name}</td>
                         <td>${s.major || s.faculty || '-'}</td>
-                        <td>${getGpaBadge(s.gpa)}</td>
-                        <td>
-                            <button class="btn btn-danger" style="padding:4px 10px; font-size:0.8em"
-                                onclick="deleteStudent(${s.id}, '${s.name}')">ลบ</button>
-                        </td>
-                    </tr>
-                `).join('');
-                
-            } catch (err) {
-                showMessage('❌ ไม่สามารถเชื่อมต่อ API ได้: ' + err.message, 'error');
-            }
+                        <td>${gpaBadge(s.gpa)}</td>
+                        <td><button class="btn btn-danger" style="padding:4px 10px;font-size:0.8em"
+                            onclick="deleteStudent(${s.id},'${s.name}')">ลบ</button></td>
+                    </tr>`).join('');
+            } catch(e) { showMsg('❌ เชื่อมต่อ API ไม่ได้: ' + e.message, 'error'); }
         }
 
         async function addStudent() {
-            const student = {
+            const s = {
                 student_id: document.getElementById('newStudentId').value,
-                name: document.getElementById('newName').value,
-                email: document.getElementById('newEmail').value,
-                faculty: document.getElementById('newFaculty').value,
-                major: document.getElementById('newMajor').value,
-                gpa: parseFloat(document.getElementById('newGpa').value) || 0
+                name:       document.getElementById('newName').value,
+                email:      document.getElementById('newEmail').value,
+                faculty:    document.getElementById('newFaculty').value,
+                major:      document.getElementById('newMajor').value,
+                gpa:        parseFloat(document.getElementById('newGpa').value) || 0
             };
-            
-            if (!student.student_id || !student.name) {
-                showMessage('⚠️ กรุณากรอก รหัสนักศึกษา และ ชื่อ ให้ครบ', 'error');
-                return;
-            }
-            
+            if (!s.student_id || !s.name) { showMsg('⚠️ กรอกรหัสและชื่อให้ครบ', 'error'); return; }
             try {
-                const res = await fetch(`${API_URL()}/students`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(student)
-                });
+                const res  = await fetch(`${API()}/students`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(s)});
                 const data = await res.json();
-                
                 if (data.status === 'success') {
-                    showMessage('✅ เพิ่มนักศึกษาสำเร็จ', 'success');
+                    showMsg('✅ เพิ่มนักศึกษาสำเร็จ', 'success');
                     loadStudents();
-                    ['newStudentId','newName','newEmail','newMajor','newGpa'].forEach(
-                        id => document.getElementById(id).value = ''
-                    );
-                } else {
-                    showMessage('❌ ' + data.message, 'error');
-                }
-            } catch (err) {
-                showMessage('❌ เกิดข้อผิดพลาด: ' + err.message, 'error');
-            }
+                    ['newStudentId','newName','newEmail','newMajor','newGpa'].forEach(id => document.getElementById(id).value='');
+                } else { showMsg('❌ ' + data.message, 'error'); }
+            } catch(e) { showMsg('❌ ' + e.message, 'error'); }
         }
 
         async function deleteStudent(id, name) {
             if (!confirm(`ยืนยันการลบ "${name}"?`)) return;
-            
             try {
-                const res = await fetch(`${API_URL()}/students/${id}`, { method: 'DELETE' });
+                const res  = await fetch(`${API()}/students/${id}`, {method:'DELETE'});
                 const data = await res.json();
-                
-                if (data.status === 'success') {
-                    showMessage('✅ ลบนักศึกษาสำเร็จ', 'success');
-                    loadStudents();
-                }
-            } catch (err) {
-                showMessage('❌ เกิดข้อผิดพลาด: ' + err.message, 'error');
-            }
+                if (data.status === 'success') { showMsg('✅ ลบสำเร็จ', 'success'); loadStudents(); }
+            } catch(e) { showMsg('❌ ' + e.message, 'error'); }
         }
     </script>
 </body>
@@ -1924,21 +2174,19 @@ sudo tee /var/www/html/index.html << 'HTMLEOF'
 HTMLEOF
 ```
 
+### ขั้นตอนที่ 2: ตั้งค่า Nginx ให้แสดงหน้าเว็บ
+
 ```bash
-# ตั้งค่า Nginx ให้ serve frontend
 sudo tee /etc/nginx/conf.d/default.conf << 'EOF'
 server {
     listen 80;
     server_name _;
 
-    # Frontend
     location / {
         root /var/www/html;
         index index.html;
-        try_files $uri $uri/ /index.html;
     }
 
-    # Flask API
     location /api/ {
         proxy_pass http://127.0.0.1:5000/;
         proxy_set_header Host $host;
@@ -1949,6 +2197,14 @@ EOF
 
 sudo systemctl reload nginx
 ```
+
+### ขั้นตอนที่ 3: ทดสอบ Frontend
+
+**1.** เปิด Browser แล้วไปที่ `http://YOUR_EC2_PUBLIC_IP`
+
+**2.** ใส่ API Gateway URL ในช่อง "API URL" แล้วคลิก **โหลดข้อมูล**
+
+**3.** ✅ ควรเห็นรายชื่อนักศึกษาแสดงในตาราง
 
 ---
 
@@ -2086,34 +2342,4 @@ aws ce get-cost-and-usage \
 
 ระหว่าง LAB:
 [ ] EC2: ใช้ t2.micro หรือ t3.micro เท่านั้น
-[ ] RDS: ใช้ db.t3.micro, Single-AZ, 20GB เท่านั้น
-[ ] ไม่สร้าง NAT Gateway (มีค่าใช้จ่าย!)
-[ ] ไม่ใช้ Application/Network Load Balancer (มีค่าใช้จ่าย!)
-
-หลัง LAB ทุกครั้ง:
-[ ] Stop หรือ Terminate EC2 Instances
-[ ] Stop หรือ Delete RDS Instances
-[ ] Release Elastic IPs ที่ไม่ใช้
-[ ] ลบ Lambda Functions ที่ไม่จำเป็น
-[ ] ลบ API Gateway Stages ที่ไม่ใช้
-[ ] ตรวจสอบ Billing ซ้ำ
-```
-
-## C. Resources เพิ่มเติม
-
-| แหล่งเรียนรู้ | URL |
-|---|---|
-| AWS Free Tier Details | https://aws.amazon.com/free/ |
-| AWS Documentation | https://docs.aws.amazon.com/ |
-| AWS Lambda Developer Guide | https://docs.aws.amazon.com/lambda/latest/dg/ |
-| AWS RDS User Guide | https://docs.aws.amazon.com/rds/ |
-| AWS API Gateway Guide | https://docs.aws.amazon.com/apigateway/ |
-| AWS Well-Architected Framework | https://aws.amazon.com/architecture/well-architected/ |
-| AWS Skill Builder (Free Courses) | https://skillbuilder.aws/ |
-| AWS Training & Certification | https://aws.amazon.com/training/ |
-
----
-
-*คู่มือ LAB นี้จัดทำสำหรับ**วิชา ICT 24267 Cloud Computing** ภาคการศึกษา 2/2568*  
-*ผู้สอน: อาจารย์อำนาจ คงเจริญถิ่น*  
-*เนื้อหาอัปเดตตาม AWS Free Tier 2026*
+[ ] 
