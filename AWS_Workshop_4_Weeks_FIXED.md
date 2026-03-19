@@ -512,7 +512,7 @@ Templates:         Free tier ✅
 
 DB instance identifier: ict24267-db
 Master username:        admin
-Master password:        ICT24267@2568  (หรือกำหนดเอง)
+Master password:        ICT24267  (หรือกำหนดเอง)
 
 DB instance class:      db.t3.micro ✅
 Storage type:           gp2
@@ -652,7 +652,7 @@ DB_HOST=ict24267-db.xxxxxxxxxx.ap-southeast-1.rds.amazonaws.com
 DB_PORT=3306
 DB_NAME=student_db
 DB_USER=admin
-DB_PASSWORD=ICT24267@2568
+DB_PASSWORD=ICT24267
 SECRET_KEY=ict24267-secret-key-2568
 EOF
 
@@ -1176,7 +1176,7 @@ def build_response(status_code, body):
    - `DB_PORT`: 3306
    - `DB_NAME`: student_db
    - `DB_USER`: admin
-   - `DB_PASSWORD`: ICT24267@2568
+   - `DB_PASSWORD`: ICT24267
 
 6. เพิ่ม **VPC Configuration** (เพื่อเข้าถึง RDS):
    - VPC: Default VPC
@@ -1615,7 +1615,7 @@ aws ssm put-parameter \
 
 aws ssm put-parameter \
     --name "/ict24267/db/password" \
-    --value "ICT24267@2568" \
+    --value "ICT24267" \
     --type "SecureString" \
     --region ap-southeast-1
 ```
