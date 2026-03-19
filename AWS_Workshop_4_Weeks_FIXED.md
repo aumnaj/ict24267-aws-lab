@@ -661,7 +661,7 @@ chmod 600 /home/ec2-user/student-app/.env
 
 ### สร้างไฟล์ `database.py`
 ```python
-# /home/ec2-user/student-app/database.py
+cat > /home/ec2-user/student-app/database.py << 'EOF'
 import pymysql
 import os
 from dotenv import load_dotenv
@@ -678,15 +678,9 @@ def get_connection():
         password=os.getenv('DB_PASSWORD'),
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
-        # หมายเหตุ: ไม่ใช้ autocommit=True เพื่อควบคุม commit/rollback เองได้ชัดเจน
     )
 
 def execute_query(query, params=None, fetch=True):
-    """
-    Helper function สำหรับรัน Query
-    - fetch=True  : ใช้กับ SELECT → return list of rows
-    - fetch=False : ใช้กับ INSERT/UPDATE/DELETE → commit แล้ว return lastrowid
-    """
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
@@ -694,18 +688,19 @@ def execute_query(query, params=None, fetch=True):
             if fetch:
                 return cursor.fetchall()
             else:
-                conn.commit()          # ✅ commit ทันทีหลัง write operation
+                conn.commit()
                 return cursor.lastrowid
     except Exception as e:
-        conn.rollback()                # ✅ rollback ถ้าเกิด error
+        conn.rollback()
         raise e
     finally:
         conn.close()
+EOF
 ```
 
 ### อัปเดตไฟล์ `app.py` หลัก
 ```python
-# /home/ec2-user/student-app/app.py (Week 2 Version)
+cat > /home/ec2-user/student-app/app.py << 'APPEOF'
 from flask import Flask, jsonify, request
 from datetime import datetime
 import os
@@ -716,14 +711,10 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# ============================================================
-# ROOT & HEALTH ENDPOINTS
-# ============================================================
-
 @app.route('/')
 def index():
     return jsonify({
-        "message": "🎓 Student Record System - Week 2 (with RDS)",
+        "message": "Student Record System - Week 2 (with RDS)",
         "course": "ICT 24267 Cloud Computing",
         "semester": "2/2568",
         "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -733,7 +724,6 @@ def index():
 
 @app.route('/health')
 def health():
-    """Health check รวมถึง Database connectivity"""
     db_status = "disconnected"
     try:
         conn = get_connection()
@@ -741,54 +731,35 @@ def health():
         db_status = "connected"
     except Exception as e:
         db_status = f"error: {str(e)}"
-    
     return jsonify({
         "status": "healthy",
         "database": db_status,
         "timestamp": datetime.now().isoformat()
     })
 
-# ============================================================
-# STUDENTS CRUD ENDPOINTS
-# ============================================================
-
 @app.route('/students', methods=['GET'])
 def get_students():
-    """ดึงข้อมูลนักศึกษาทั้งหมด"""
     try:
-        # รองรับ query parameters
         faculty = request.args.get('faculty')
         min_gpa = request.args.get('min_gpa', type=float)
-        
         query = "SELECT * FROM students WHERE 1=1"
         params = []
-        
         if faculty:
             query += " AND faculty = %s"
             params.append(faculty)
         if min_gpa:
             query += " AND gpa >= %s"
             params.append(min_gpa)
-        
         query += " ORDER BY student_id"
-        
         students = execute_query(query, params)
-        return jsonify({
-            "status": "success",
-            "count": len(students),
-            "data": students
-        })
+        return jsonify({"status": "success", "count": len(students), "data": students})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/students/<int:student_id>', methods=['GET'])
 def get_student(student_id):
-    """ดึงข้อมูลนักศึกษาตาม ID"""
     try:
-        result = execute_query(
-            "SELECT * FROM students WHERE id = %s", 
-            (student_id,)
-        )
+        result = execute_query("SELECT * FROM students WHERE id = %s", (student_id,))
         if result:
             return jsonify({"status": "success", "data": result[0]})
         return jsonify({"status": "error", "message": "Student not found"}), 404
@@ -797,125 +768,67 @@ def get_student(student_id):
 
 @app.route('/students', methods=['POST'])
 def create_student():
-    """เพิ่มนักศึกษาใหม่"""
     try:
         data = request.get_json()
-        required_fields = ['student_id', 'name']
-        
-        for field in required_fields:
+        for field in ['student_id', 'name']:
             if not data.get(field):
-                return jsonify({
-                    "status": "error", 
-                    "message": f"Missing required field: {field}"
-                }), 400
-        
+                return jsonify({"status": "error", "message": f"Missing required field: {field}"}), 400
         new_id = execute_query(
-            """INSERT INTO students 
-               (student_id, name, email, faculty, major, gpa, enrollment_year)
+            """INSERT INTO students (student_id, name, email, faculty, major, gpa, enrollment_year)
                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-            (
-                data['student_id'], data['name'],
-                data.get('email', ''), data.get('faculty', ''),
-                data.get('major', ''), data.get('gpa', 0.00),
-                data.get('enrollment_year', datetime.now().year + 543)
-            ),
+            (data['student_id'], data['name'], data.get('email', ''),
+             data.get('faculty', ''), data.get('major', ''),
+             data.get('gpa', 0.00), data.get('enrollment_year', datetime.now().year + 543)),
             fetch=False
         )
-        
-        student = execute_query(
-            "SELECT * FROM students WHERE id = %s", (new_id,)
-        )
+        student = execute_query("SELECT * FROM students WHERE id = %s", (new_id,))
         return jsonify({"status": "success", "data": student[0]}), 201
-        
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/students/<int:student_id>', methods=['PUT'])
 def update_student(student_id):
-    """อัปเดตข้อมูลนักศึกษา"""
     try:
-        # ✅ ตรวจสอบว่านักศึกษามีอยู่จริงก่อน UPDATE
-        existing = execute_query(
-            "SELECT id FROM students WHERE id = %s", (student_id,)
-        )
+        existing = execute_query("SELECT id FROM students WHERE id = %s", (student_id,))
         if not existing:
             return jsonify({"status": "error", "message": "Student not found"}), 404
-
         data = request.get_json()
-        
         execute_query(
-            """UPDATE students 
-               SET name=%s, email=%s, faculty=%s, major=%s, gpa=%s
+            """UPDATE students SET name=%s, email=%s, faculty=%s, major=%s, gpa=%s
                WHERE id=%s""",
-            (
-                data.get('name'), data.get('email'),
-                data.get('faculty'), data.get('major'),
-                data.get('gpa'), student_id
-            ),
+            (data.get('name'), data.get('email'), data.get('faculty'),
+             data.get('major'), data.get('gpa'), student_id),
             fetch=False
         )
-        
-        student = execute_query(
-            "SELECT * FROM students WHERE id = %s", (student_id,)
-        )
+        student = execute_query("SELECT * FROM students WHERE id = %s", (student_id,))
         return jsonify({"status": "success", "data": student[0]})
-        
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/students/<int:student_id>', methods=['DELETE'])
 def delete_student(student_id):
-    """ลบข้อมูลนักศึกษา"""
     try:
-        execute_query(
-            "DELETE FROM students WHERE id = %s", 
-            (student_id,), 
-            fetch=False
-        )
-        return jsonify({
-            "status": "success", 
-            "message": f"Student ID {student_id} deleted"
-        })
+        execute_query("DELETE FROM students WHERE id = %s", (student_id,), fetch=False)
+        return jsonify({"status": "success", "message": f"Student ID {student_id} deleted"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
-# ============================================================
-# COURSES ENDPOINTS
-# ============================================================
 
 @app.route('/courses', methods=['GET'])
 def get_courses():
     courses = execute_query("SELECT * FROM courses ORDER BY course_code")
     return jsonify({"status": "success", "count": len(courses), "data": courses})
 
-@app.route('/courses', methods=['POST'])
-def create_course():
-    data = request.get_json()
-    new_id = execute_query(
-        "INSERT INTO courses (course_code, course_name, credits, instructor) VALUES (%s, %s, %s, %s)",
-        (data['course_code'], data['course_name'], data.get('credits', 3), data.get('instructor', '')),
-        fetch=False
-    )
-    course = execute_query("SELECT * FROM courses WHERE id = %s", (new_id,))
-    return jsonify({"status": "success", "data": course[0]}), 201
-
-# ============================================================
-# STATISTICS ENDPOINT
-# ============================================================
-
 @app.route('/stats')
 def get_stats():
-    """สถิติภาพรวม"""
-    total_students = execute_query("SELECT COUNT(*) as count FROM students")[0]['count']
+    total = execute_query("SELECT COUNT(*) as count FROM students")[0]['count']
     avg_gpa = execute_query("SELECT AVG(gpa) as avg FROM students")[0]['avg']
     top_students = execute_query(
         "SELECT name, student_id, gpa FROM students ORDER BY gpa DESC LIMIT 3"
     )
-    
     return jsonify({
         "status": "success",
         "data": {
-            "total_students": total_students,
+            "total_students": total,
             "average_gpa": round(float(avg_gpa or 0), 2),
             "top_students": top_students
         }
@@ -923,6 +836,7 @@ def get_stats():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
+APPEOF
 ```
 
 ```bash
