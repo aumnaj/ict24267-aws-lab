@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICT24267 — สรุปและเฉลย Week 1–4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --w1:#3b82f6;--w1h:#93c5fd;
+  --w2:#a855f7;--w2h:#d8b4fe;
+  --w3:#10b981;--w3h:#6ee7b7;
+  --w4:#f97316;--w4h:#fdba74;
+  --gold:#fbbf24;--green:#22c55e;--red:#ef4444;
+  --bg:#070d1a;--bg2:#0d1525;--bg3:#131e34;--bg4:#1a2840;
+  --border:rgba(255,255,255,0.07);
+  --text:#e2e8f0;--muted:#7a90b0;
+  --font-th:'IBM Plex Sans Thai',sans-serif;
+  --font-en:'Space Grotesk',sans-serif;
+  --font-code:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-th);background:var(--bg);color:var(--text);line-height:1.8;font-size:17px}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--w3);border-radius:3px}
+
+/* ── HEADER ── */
+.hero{
+  background:linear-gradient(160deg,#030710 0%,#071228 40%,#0a1a35 100%);
+  padding:56px 24px 44px;text-align:center;position:relative;overflow:hidden;
+  border-bottom:1px solid var(--border);
+}
+.hero::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%,rgba(59,130,246,0.1) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 100%,rgba(16,185,129,0.08) 0%,transparent 70%);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);
+  color:var(--gold);border-radius:99px;padding:5px 16px;
+  font-size:13px;font-weight:700;letter-spacing:0.08em;font-family:var(--font-en);
+  text-transform:uppercase;margin-bottom:18px;
+}
+.hero h1{
+  font-family:var(--font-en);font-size:clamp(2.1rem,4vw,3.1rem);
+  font-weight:700;line-height:1.1;margin-bottom:10px;
+  background:linear-gradient(90deg,var(--w1h),#67e8f9,var(--w3h),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{color:var(--muted);font-size:1.06rem;margin-bottom:24px}
+.week-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:8px}
+.wchip{
+  padding:7px 18px;border-radius:99px;font-size:1.04rem;font-weight:700;
+  font-family:var(--font-en);cursor:pointer;transition:all 0.2s;border:1px solid;
+}
+.wchip.w1{background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:var(--w1h)}
+.wchip.w2{background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.4);color:var(--w2h)}
+.wchip.w3{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:var(--w3h)}
+.wchip.w4{background:rgba(249,115,22,0.15);border-color:rgba(249,115,22,0.4);color:var(--w4h)}
+.wchip:hover{transform:translateY(-2px);filter:brightness(1.2)}
+
+/* ── LAYOUT ── */
+.container{max-width:960px;margin:0 auto;padding:48px 32px 96px}
+
+/* ── WEEK SECTION ── */
+.week-block{margin-bottom:64px;scroll-margin-top:24px}
+.week-banner{
+  border-radius:18px;padding:28px 32px;margin-bottom:32px;
+  position:relative;overflow:hidden;
+}
+.week-banner.w1{background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(59,130,246,0.05));border:1px solid rgba(59,130,246,0.3)}
+.week-banner.w2{background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(168,85,247,0.05));border:1px solid rgba(168,85,247,0.3)}
+.week-banner.w3{background:linear-gradient(135deg,rgba(16,185,129,0.18),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.3)}
+.week-banner.w4{background:linear-gradient(135deg,rgba(249,115,22,0.18),rgba(249,115,22,0.05));border:1px solid rgba(249,115,22,0.3)}
+.week-banner::after{content:attr(data-n);position:absolute;right:16px;top:-8px;font-size:110px;font-weight:900;font-family:var(--font-en);opacity:0.04;line-height:1;pointer-events:none}
+.wlabel{font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;font-family:var(--font-en);margin-bottom:6px}
+.w1 .wlabel{color:var(--w1h)}.w2 .wlabel{color:var(--w2h)}.w3 .wlabel{color:var(--w3h)}.w4 .wlabel{color:var(--w4h)}
+.week-banner h2{font-size:1.75rem;font-weight:700;color:white;font-family:var(--font-en);margin-bottom:10px}
+.week-banner p{color:var(--muted);font-size:1.01rem;margin-bottom:14px}
+.tag-row{display:flex;flex-wrap:wrap;gap:7px}
+.tag{padding:3px 11px;border-radius:99px;font-size:11px;font-weight:600;font-family:var(--font-en)}
+.tw1{background:rgba(59,130,246,0.15);color:var(--w1h);border:1px solid rgba(59,130,246,0.3)}
+.tw2{background:rgba(168,85,247,0.15);color:var(--w2h);border:1px solid rgba(168,85,247,0.3)}
+.tw3{background:rgba(16,185,129,0.15);color:var(--w3h);border:1px solid rgba(16,185,129,0.3)}
+.tw4{background:rgba(249,115,22,0.15);color:var(--w4h);border:1px solid rgba(249,115,22,0.3)}
+
+/* ── SECTION CARD ── */
+.card{background:var(--bg2);border-radius:14px;border:1px solid var(--border);margin-bottom:20px;overflow:hidden}
+.card-header{
+  display:flex;align-items:center;gap:12px;padding:16px 22px;
+  border-bottom:1px solid var(--border);
+}
+.card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.ci-w1{background:rgba(59,130,246,0.2)}.ci-w2{background:rgba(168,85,247,0.2)}
+.ci-w3{background:rgba(16,185,129,0.2)}.ci-w4{background:rgba(249,115,22,0.2)}
+.ci-gold{background:rgba(251,191,36,0.2)}
+.card-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--font-en)}
+.cl-w1{color:var(--w1h)}.cl-w2{color:var(--w2h)}.cl-w3{color:var(--w3h)}.cl-w4{color:var(--w4h)}.cl-gold{color:var(--gold)}
+.card-title{font-size:1.1rem;font-weight:700;color:white}
+.card-body{padding:24px 26px}
+
+/* ── SUMMARY GRID ── */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.summary-item{
+  background:var(--bg3);border-radius:10px;padding:12px 14px;
+  border:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;
+}
+.si-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:2px}
+.si-text{font-size:0.98rem;color:var(--text);line-height:1.5}
+.si-text strong{color:white;display:block;margin-bottom:2px;font-size:0.99rem}
+
+/* ── CONCEPT TABLE ── */
+.ctable{width:100%;border-collapse:collapse;font-size:0.98rem}
+.ctable th{padding:9px 14px;background:var(--bg3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;font-family:var(--font-en);text-align:left}
+.ctable td{padding:9px 14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.ctable tr:last-child td{border-bottom:none}
+.ctable tr:hover td{background:rgba(255,255,255,0.02)}
+.hi-w1{color:var(--w1h)}.hi-w2{color:var(--w2h)}.hi-w3{color:var(--w3h)}.hi-w4{color:var(--w4h)}.hi-gold{color:var(--gold)}
+
+/* ── EXERCISE ANSWER ── */
+.ex-block{margin-bottom:20px}
+.ex-title{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  padding-bottom:10px;border-bottom:1px solid var(--border);
+}
+.ex-num{
+  width:30px;height:30px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:800;font-family:var(--font-en);flex-shrink:0;
+}
+.en-w1{background:var(--w1);color:#fff}.en-w2{background:var(--w2);color:#fff}
+.en-w3{background:var(--w3);color:#000}.en-w4{background:var(--w4);color:#fff}
+.ex-name{font-weight:700;color:white;font-size:1rem}
+.answer-box{
+  background:var(--bg3);border-radius:12px;border:1px solid rgba(34,197,94,0.2);
+  padding:18px 20px;position:relative;
+}
+.answer-box::before{
+  content:'✅ เฉลย';position:absolute;top:-11px;left:16px;
+  background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);
+  color:#86efac;font-size:10px;font-weight:700;letter-spacing:0.08em;
+  font-family:var(--font-en);padding:2px 10px;border-radius:99px;
+}
+.answer-text{color:var(--text);font-size:1.01rem;line-height:1.8}
+.answer-text p{margin-bottom:8px}
+.answer-text p:last-child{margin-bottom:0}
+.answer-text strong{color:white}
+.code-inline{font-family:var(--font-code);font-size:0.92em;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;color:#f1fa8c}
+
+/* ── CODE BLOCK ── */
+.code-wrap{margin:10px 0;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.07)}
+.code-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;font-size:10px;font-family:var(--font-en);font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+.ch-py{background:rgba(59,130,246,0.15);color:#93c5fd}
+.ch-bash{background:rgba(34,197,94,0.15);color:#86efac}
+pre{background:#080e1c;padding:16px;overflow-x:auto;margin:0;font-family:var(--font-code);font-size:14px;line-height:1.6}
+.kw{color:#ff79c6}.fn{color:#50fa7b}.str{color:#f1fa8c}.cm{color:#6272a4;font-style:italic}.nb{color:#bd93f9}.num{color:#ff79c6}
+
+/* ── Q&A ACCORDION ── */
+.qa-item{margin-bottom:10px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.qa-q{
+  display:flex;align-items:flex-start;gap:12px;padding:16px 18px;
+  background:var(--bg3);cursor:pointer;transition:background 0.15s;
+  user-select:none;
+}
+.qa-q:hover{background:var(--bg4)}
+.qa-qnum{
+  width:26px;height:26px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;font-family:var(--font-en);margin-top:1px;
+}
+.qn-w1{background:rgba(59,130,246,0.25);color:var(--w1h)}
+.qn-w2{background:rgba(168,85,247,0.25);color:var(--w2h)}
+.qn-w3{background:rgba(16,185,129,0.25);color:var(--w3h)}
+.qn-w4{background:rgba(249,115,22,0.25);color:var(--w4h)}
+.qa-text{flex:1}
+.qa-keyword{font-weight:700;color:white;display:block;margin-bottom:3px;font-size:1.06rem}
+.qa-question{color:var(--muted);font-size:0.98rem;line-height:1.55}
+.qa-chevron{margin-left:auto;font-size:18px;color:var(--muted);transition:transform 0.25s;flex-shrink:0;margin-top:2px}
+.qa-item.open .qa-chevron{transform:rotate(180deg)}
+.qa-a{
+  max-height:0;overflow:hidden;transition:max-height 0.35s ease;
+  background:rgba(0,0,0,0.2);
+}
+.qa-item.open .qa-a{max-height:1200px}
+.qa-a-inner{padding:20px 18px 20px 56px;border-top:1px solid var(--border)}
+.ans-label{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);
+  color:#86efac;border-radius:7px;padding:4px 11px;
+  font-size:10px;font-weight:700;font-family:var(--font-en);
+  letter-spacing:0.06em;margin-bottom:14px;
+}
+.qa-answer{color:var(--text);font-size:1.01rem;line-height:1.82}
+.qa-answer p{margin-bottom:10px}
+.qa-answer p:last-child{margin-bottom:0}
+.qa-answer strong{color:white}
+.qa-answer ul{padding-left:18px;margin:8px 0}
+.qa-answer li{margin-bottom:5px;color:var(--muted)}
+.qa-answer li strong{color:var(--text)}
+
+/* ── COMPARE TABLE ── */
+.cmp-table{width:100%;border-collapse:collapse;font-size:0.96rem;margin:10px 0}
+.cmp-table th{padding:9px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:var(--font-en);color:var(--muted);background:var(--bg4);text-align:left}
+.cmp-table td{padding:9px 14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table td:first-child{color:var(--muted);font-weight:600}
+
+/* ── KEY POINT CHIP ── */
+.kp-row{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.kp{padding:4px 12px;border-radius:7px;font-size:1.04rem;font-weight:600;background:var(--bg4);border:1px solid var(--border);color:var(--text)}
+.kp.correct{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:#86efac}
+.kp.warn{background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:var(--gold)}
+.kp.info{background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.3);color:var(--w1h)}
+
+/* ── QUIZ CHEATSHEET ── */
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.cheat-card{background:var(--bg3);border-radius:12px;padding:16px 18px;border:1px solid var(--border)}
+.cheat-card h4{font-size:1.04rem;font-weight:700;margin-bottom:10px;font-family:var(--font-en);letter-spacing:0.04em}
+.cheat-card.cw1 h4{color:var(--w1h)}.cheat-card.cw2 h4{color:var(--w2h)}
+.cheat-card.cw3 h4{color:var(--w3h)}.cheat-card.cw4 h4{color:var(--w4h)}
+.cheat-item{display:flex;gap:8px;margin-bottom:7px;font-size:0.94rem;align-items:flex-start}
+.cheat-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:7px}
+.cd-w1{background:var(--w1h)}.cd-w2{background:var(--w2h)}.cd-w3{background:var(--w3h)}.cd-w4{background:var(--w4h)}
+.cheat-item span{color:var(--muted);line-height:1.5}
+.cheat-item span strong{color:var(--text)}
+
+/* ── FINAL COMPARE ── */
+.big-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.bc-card{border-radius:14px;padding:20px;border:1px solid}
+.bc-card.trad{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2)}
+.bc-card.sls{background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.2)}
+.bc-card h4{font-size:0.96rem;font-weight:700;margin-bottom:12px;font-family:var(--font-en)}
+.bc-card.trad h4{color:#fca5a5}.bc-card.sls h4{color:var(--w3h)}
+.bc-row{display:flex;gap:8px;margin-bottom:7px;font-size:0.94rem;color:var(--muted)}
+.bc-row .bi{flex-shrink:0}
+
+/* ── PROGRESS BAR (decorative) ── */
+.prog-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.prog-label{font-size:1.04rem;color:var(--muted);width:120px;flex-shrink:0}
+.prog-bar{flex:1;background:rgba(255,255,255,0.06);border-radius:99px;height:8px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;transition:width 0.8s ease}
+.prog-pct{font-size:0.8rem;font-family:var(--font-en);font-weight:700;width:36px;text-align:right;flex-shrink:0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .summary-grid,.cheat-grid,.big-compare,.cmp-table{grid-template-columns:1fr}
+  .cmp-table{font-size:0.99rem}
+  .qa-a-inner{padding-left:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-badge">📚 สรุปและเฉลย Quiz Preparation</div>
+  <h1>ICT 24267 Cloud Computing</h1>
+  <p>อาจารย์อำนาจ คงเจริญถิ่น · ภาคการศึกษา 2/2568 · AWS Free Tier Workshop Week 1–4</p>
+  <div class="week-chips">
+    <div class="wchip w1" onclick="document.getElementById('w1').scrollIntoView({behavior:'smooth'})">🔵 Week 1 — EC2 + Flask</div>
+    <div class="wchip w2" onclick="document.getElementById('w2').scrollIntoView({behavior:'smooth'})">🟣 Week 2 — RDS MySQL</div>
+    <div class="wchip w3" onclick="document.getElementById('w3').scrollIntoView({behavior:'smooth'})">🟢 Week 3 — Serverless</div>
+    <div class="wchip w4" onclick="document.getElementById('w4').scrollIntoView({behavior:'smooth'})">🟠 Week 4 — Automation</div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ════════════════════ WEEK 1 ════════════════════ -->
+<div class="week-block" id="w1">
+  <div class="week-banner w1" data-n="1">
+    <div class="wlabel">📅 Week 1</div>
+    <h2>EC2 Advanced — Web Server & Flask</h2>
+    <p>สร้าง Virtual Machine บน Cloud พร้อม Python Flask REST API และ Nginx Reverse Proxy</p>
+    <div class="tag-row">
+      <span class="tag tw1">EC2 t3.micro</span><span class="tag tw1">Amazon Linux 2023</span>
+      <span class="tag tw1">Python Flask</span><span class="tag tw1">Nginx</span>
+      <span class="tag tw1">Security Groups</span><span class="tag tw1">Elastic IP</span>
+      <span class="tag tw1">User Data Script</span>
+    </div>
+  </div>
+
+  <!-- สรุปหัวข้อ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon ci-w1">📋</div>
+      <div><div class="card-label cl-w1">หัวข้อที่เรียน</div><div class="card-title">สรุป Key Concepts — Week 1</div></div>
+    </div>
+    <div class="card-body">
+      <div class="summary-grid">
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>EC2 (Elastic Compute Cloud)</strong>Virtual Machine บน AWS, เลือก type/OS/size ได้, จ่ายตามชั่วโมงที่ใช้</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Key Pair (RSA)</strong>กุญแจ SSH เข้า EC2 — .pem (Linux/Mac), .ppk (Windows+PuTTY), ดาวน์โหลดได้ครั้งเดียว</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Security Group</strong>Virtual Firewall ควบคุม Inbound/Outbound traffic ระดับ Instance</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>User Data Script</strong>Script รันอัตโนมัติตอน Instance เปิดครั้งแรก ใช้ติดตั้ง software</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Python Flask</strong>Web Framework เบาๆ สร้าง REST API — @app.route(), jsonify(), request.get_json()</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Nginx Reverse Proxy</strong>รับ request Port 80 แล้วส่งต่อให้ Flask Port 5000 — ปลอดภัยและเสถียรกว่า</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Elastic IP</strong>IP ถาวรที่ไม่เปลี่ยนเมื่อ Stop/Start — ฟรีเฉพาะตอน Instance กำลัง Running</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>systemd Service</strong>ทำให้ Flask รันอัตโนมัติเมื่อ reboot ด้วย systemctl enable/start</div></div>
+      </div>
+      <div style="margin-top:14px">
+        <p style="color:var(--muted);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:var(--font-en);margin-bottom:10px">Ports ที่ต้องจำ</p>
+        <table class="ctable">
+          <tr><th>Port</th><th>Protocol</th><th>ใช้ทำอะไร</th><th>ใน Security Group</th></tr>
+          <tr><td class="hi-w1">22</td><td>SSH</td><td>เข้าถึง EC2 ผ่าน Terminal</td><td>Inbound</td></tr>
+          <tr><td class="hi-gold">80</td><td>HTTP</td><td>เว็บผ่าน Nginx</td><td>Inbound</td></tr>
+          <tr><td class="hi-w3">5000</td><td>Custom TCP</td><td>Flask development server</td><td>Inbound</td></tr>
+          <tr><td class="hi-w2">3306</td><td>MySQL</td><td>เชื่อมต่อ RDS (Week 2)</td><td>Inbound (RDS SG เท่านั้น)</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- เฉลยแบบฝึกหัด -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon ci-gold">✏️</div>
+      <div><div class="card-label cl-gold">เฉลยแบบฝึกหัด</div><div class="card-title">Week 1</div></div>
+    </div>
+    <div class="card-body">
+      <div class="ex-block">
+        <div class="ex-title">
+          <div class="ex-num en-w1">1</div>
+          <div class="ex-name">เพิ่ม Endpoint PUT และ DELETE</div>
+        </div>
+        <div class="answer-box">
+          <div class="code-wrap">
+            <div class="code-hd ch-py"><span>เฉลย — app.py (In-Memory version)</span><span>Python</span></div>
+            <pre><code><span class="cm"># แบบฝึกหัดที่ 1 — PUT และ DELETE สำหรับ In-Memory list</span>
+
+<span class="nb">@</span>app.<span class="fn">route</span>(<span class="str">'/students/&lt;int:student_id&gt;'</span>, methods=[<span class="str">'PUT'</span>])
+<span class="kw">def</span> <span class="fn">update_student</span>(student_id):
+    data = request.<span class="fn">get_json</span>()
+    <span class="cm"># หา student ใน list ด้วย next()</span>
+    student = <span class="nb">next</span>((s <span class="kw">for</span> s <span class="kw">in</span> students <span class="kw">if</span> s[<span class="str">"id"</span>] == student_id), <span class="nb">None</span>)
+    <span class="kw">if not</span> student:
+        <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"error"</span>, <span class="str">"message"</span>: <span class="str">"Student not found"</span>}), <span class="num">404</span>
+    <span class="cm"># อัปเดตเฉพาะ field ที่ส่งมา</span>
+    <span class="kw">if</span> <span class="str">"name"</span> <span class="kw">in</span> data:
+        student[<span class="str">"name"</span>] = data[<span class="str">"name"</span>]
+    <span class="kw">if</span> <span class="str">"gpa"</span> <span class="kw">in</span> data:
+        student[<span class="str">"gpa"</span>] = data[<span class="str">"gpa"</span>]
+    <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"data"</span>: student})
+
+<span class="nb">@</span>app.<span class="fn">route</span>(<span class="str">'/students/&lt;int:student_id&gt;'</span>, methods=[<span class="str">'DELETE'</span>])
+<span class="kw">def</span> <span class="fn">delete_student</span>(student_id):
+    <span class="kw">global</span> students
+    original_len = <span class="nb">len</span>(students)
+    students = [s <span class="kw">for</span> s <span class="kw">in</span> students <span class="kw">if</span> s[<span class="str">"id"</span>] != student_id]
+    <span class="kw">if</span> <span class="nb">len</span>(students) == original_len:
+        <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"error"</span>, <span class="str">"message"</span>: <span class="str">"Student not found"</span>}), <span class="num">404</span>
+    <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"message"</span>: <span class="nb">f</span><span class="str">"Student {student_id} deleted"</span>})</code></pre>
+          </div>
+          <div class="answer-text" style="margin-top:12px">
+            <p><strong>จุดสำคัญที่ต้องรู้:</strong> ใช้ <span class="code-inline">next()</span> หาข้อมูลใน list, กำหนด HTTP status code ที่ถูกต้อง (<span class="code-inline">404</span> เมื่อไม่พบ, <span class="code-inline">200</span> เมื่อสำเร็จ), ใช้ <span class="code-inline">global</span> เมื่อต้องการแก้ไข list ระดับ module</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ex-block">
+        <div class="ex-title">
+          <div class="ex-num en-w1">2</div>
+          <div class="ex-name">Monitoring ด้วย CloudWatch</div>
+        </div>
+        <div class="answer-box">
+          <div class="answer-text">
+            <p><strong>Metrics ที่ต้องสังเกตและความหมาย:</strong></p>
+            <ul>
+              <li><strong>CPU Utilization:</strong> % การใช้งาน CPU — ปกติ &lt;20%, หลัง stress จะพุ่งขึ้น &gt;80%</li>
+              <li><strong>Network In/Out:</strong> ปริมาณ traffic เข้า-ออก Instance (bytes) — ช่วยดู load</li>
+              <li><strong>Status Check:</strong> มี 2 แบบ — System Status (hardware AWS) และ Instance Status (OS)</li>
+            </ul>
+            <p style="margin-top:8px"><strong>ผลของ stress test:</strong> <span class="code-inline">stress --cpu 1 --timeout 60</span> จะทำให้ CPU Utilization พุ่งขึ้นใกล้ 100% ทันที และลดลงหลัง 60 วินาที — ใช้เพื่อทดสอบว่า CloudWatch Alarm ทำงานได้ถูกต้อง</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- คำถามท้ายบท -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon ci-w1">🗒️</div>
+      <div><div class="card-label cl-w1">เฉลยคำถามท้ายบท</div><div class="card-title">Week 1 — 5 ข้อ</div></div>
+    </div>
+    <div class="card-body" style="padding:16px 18px">
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q">
+          <div class="qa-qnum qn-w1">1</div>
+          <div class="qa-text">
+            <span class="qa-keyword">EC2 Instance Types: t2.micro vs t3.micro</span>
+            <span class="qa-question">ต่างกันอย่างไร? และทำไม AWS ถึงแนะนำ t3.micro สำหรับ workload ใหม่?</span>
+          </div>
+          <span class="qa-chevron">▾</span>
+        </div>
+        <div class="qa-a"><div class="qa-a-inner">
+          <div class="ans-label">✅ เฉลย</div>
+          <div class="qa-answer">
+            <table class="cmp-table">
+              <tr><th>ด้าน</th><th>t2.micro</th><th>t3.micro (แนะนำ)</th></tr>
+              <tr><td>CPU Credits</td><td>Fixed credit pool, หมดแล้วหมดเลย</td><td>Unlimited mode — ไม่มีหมด (จ่ายเพิ่มได้)</td></tr>
+              <tr><td>CPU Bursting</td><td>Burst แล้วต้องรอ credit สะสม</td><td>Burst ได้ตลอดโดยไม่ติด credit</td></tr>
+              <tr><td>Architecture</td><td>Intel เท่านั้น</td><td>Intel และ AMD (Nitro System)</td></tr>
+              <tr><td>ราคา</td><td>ถูกกว่าเล็กน้อย</td><td>ใกล้เคียงกัน แต่ performance ดีกว่า</td></tr>
+              <tr><td>Free Tier</td><td>750 ชม./เดือน ✅</td><td>750 ชม./เดือน ✅</td></tr>
+            </table>
+            <p style="margin-top:10px"><strong>เหตุผลที่ AWS แนะนำ t3:</strong> t3 ใช้ Nitro Hypervisor ที่มีประสิทธิภาพสูงกว่า, รองรับ CPU Burst แบบ Unlimited ป้องกัน performance ตก, และรองรับ CPU architecture ที่หลากหลายกว่า — เหมาะกับ workload สมัยใหม่ที่ traffic ไม่แน่นอน</p>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q">
+          <div class="qa-qnum qn-w1">2</div>
+          <div class="qa-text">
+            <span class="qa-keyword">Security Groups: Inbound vs Outbound</span>
+            <span class="qa-question">อธิบายความแตกต่าง พร้อมยกตัวอย่างว่าทำไม Outbound ก็สำคัญ</span>
+          </div>
+          <span class="qa-chevron">▾</span>
+        </div>
+        <div class="qa-a"><div class="qa-a-inner">
+          <div class="ans-label">✅ เฉลย</div>
+          <div class="qa-answer">
+            <ul>
+              <li><strong>Inbound rules:</strong> ควบคุม traffic ที่เข้ามา จาก Internet → Instance เช่น อนุญาต Port 80 (HTTP), 22 (SSH)</li>
+              <li><strong>Outbound rules:</strong> ควบคุม traffic ที่ออกไป จาก Instance → Internet/Services อื่น</li>
+            </ul>
+            <p style="margin-top:8px"><strong>ทำไม Outbound ก็สำคัญ?</strong></p>
+            <ul>
+              <li>ถ้า EC2 ถูก hack แล้วมี malware ส่ง data ออก — Outbound ที่ restrictive จะบล็อกได้</li>
+              <li>ในสภาพแวดล้อม Production ควรจำกัด Outbound ให้เชื่อมต่อได้เฉพาะ services ที่จำเป็น เช่น RDS (3306), S3, CloudWatch เท่านั้น</li>
+              <li>AWS Security Group เป็น Stateful — connection ที่ Inbound อนุญาตแล้ว response จะออกได้โดยอัตโนมัติ แม้ Outbound จะ block</li>
+            </ul>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q">
+          <div class="qa-qnum qn-w1">3</div>
+          <div class="qa-text">
+            <span class="qa-keyword">User Data vs SSH</span>
+            <span class="qa-question">เปรียบเทียบข้อดีข้อเสียของการ configure server ผ่าน User Data script กับการ SSH เข้าไปตั้งค่าเอง</span>
+          </div>
+          <span class="qa-chevron">▾</span>
+        </div>
+        <div class="qa-a"><div class="qa-a-inner">
+          <div class="ans-label">✅ เฉลย</div>
+          <div class="qa-answer">
+            <table class="cmp-table">
+              <tr><th>ด้าน</th><th>User Data Script</th><th>SSH ตั้งค่าเอง</th></tr>
+              <tr><td>Automation</td><td class="hi-w3">✅ อัตโนมัติ 100% ทุกครั้ง Launch</td><td class="hi-w2">❌ ต้องทำซ้ำทุกครั้ง</td></tr>
+              <tr><td>Reproducibility</td><td class="hi-w3">✅ ได้ผลลัพธ์เหมือนกันทุกครั้ง</td><td class="hi-w2">❌ เกิด human error ได้</td></tr>
+              <tr><td>Infrastructure as Code</td><td class="hi-w3">✅ เก็บเป็น code ได้ (version control)</td><td class="hi-w2">❌ ไม่มี record</td></tr>
+              <tr><td>Debug</td><td class="hi-w2">⚠️ ยากกว่า ดู log ที่ /var/log/user-data.log</td><td class="hi-w3">✅ เห็น error ทันที</td></tr>
+              <tr><td>Flexibility</td><td class="hi-w2">⚠️ รันครั้งเดียวตอนเริ่ม</td><td class="hi-w3">✅ ยืดหยุ่นกว่า ทำได้ตลอด</td></tr>
+              <tr><td>เหมาะกับ</td><td>Scalable infrastructure, Auto Scaling</td><td>Debugging, การแก้ไขฉุกเฉิน</td></tr>
+            </table>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q">
+          <div class="qa-qnum qn-w1">4</div>
+          <div class="qa-text">
+            <span class="qa-keyword">Elastic IP</span>
+            <span class="qa-question">หากลืม Release Elastic IP จะเกิดอะไรขึ้น? และจะหลีกเลี่ยงค่าใช้จ่ายได้อย่างไร?</span>
+          </div>
+          <span class="qa-chevron">▾</span>
+        </div>
+        <div class="qa-a"><div class="qa-a-inner">
+          <div class="ans-label">✅ เฉลย</div>
+          <div class="qa-answer">
+            <p><strong>ถ้าลืม Release จะเกิดอะไร:</strong> AWS คิดเงินประมาณ <strong>$0.005/ชั่วโมง</strong> (~$3.60/เดือน) สำหรับ Elastic IP ที่ <strong>Allocate แล้วแต่ไม่ได้ผูกกับ Instance ที่กำลัง Running</strong></p>
+            <p>กรณีที่มีค่าใช้จ่าย:</p>
+            <ul>
+              <li>Allocate EIP แต่ไม่ได้ Associate กับ Instance ใดเลย</li>
+              <li>Associate กับ Instance ที่ Stop อยู่</li>
+              <li>Associate กับ Network Interface ที่ไม่ได้ใช้งาน</li>
+            </ul>
+            <p><strong>วิธีหลีกเลี่ยง:</strong></p>
+            <ul>
+              <li>ทำตาม Cleanup checklist ทุกครั้งหลัง LAB</li>
+              <li>ตั้ง AWS Budget Alert ที่ $0.01 — จะได้รับ email ทันทีที่มีค่าใช้จ่าย</li>
+              <li>ก่อน Stop Instance ให้ Disassociate EIP แล้ว Release ทุกครั้ง</li>
+            </ul>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q">
+          <div class="qa-qnum qn-w1">5</div>
+          <div class="qa-text">
+            <span class="qa-keyword">Flask Architecture</span>
+            <span class="qa-question">ทำไมถึงต้องใช้ Nginx เป็น Reverse Proxy หน้า Flask แทนที่จะให้ Flask รับ request โดยตรง?</span>
+          </div>
+          <span class="qa-chevron">▾</span>
+        </div>
+        <div class="qa-a"><div class="qa-a-inner">
+          <div class="ans-label">✅ เฉลย</div>
+          <div class="qa-answer">
+            <p><strong>Flask ไม่เหมาะกับ Production โดยตรง เพราะ:</strong></p>
+            <ul>
+              <li><strong>Single-threaded:</strong> Flask development server รับ request ได้ทีละ 1 ใน default mode</li>
+              <li><strong>Port 5000:</strong> ต้องระบุ port ในทุก URL, ไม่เป็น standard</li>
+              <li><strong>ไม่มี security features:</strong> ไม่มี DDoS protection, rate limiting, SSL termination</li>
+            </ul>
+            <p><strong>ประโยชน์ของ Nginx Reverse Proxy:</strong></p>
+            <ul>
+              <li>รับ request ทาง Port 80 (HTTP standard) — ไม่ต้องใส่ :5000 ใน URL</li>
+              <li>Static file serving ที่เร็วกว่า — Nginx เก่งกว่า Flask มาก</li>
+              <li>Load balancing — กระจาย request ไปหลาย Flask process ได้</li>
+              <li>SSL Termination — จัดการ HTTPS ที่ Nginx แทนที่จะให้ Flask ทำ</li>
+              <li>Buffer requests — ป้องกัน slow clients ไม่ให้กิน Flask resource</li>
+            </ul>
+          </div>
+        </div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ WEEK 2 ════════════════════ -->
+<div class="week-block" id="w2">
+  <div class="week-banner w2" data-n="2">
+    <div class="wlabel">📅 Week 2</div>
+    <h2>RDS — Relational Database Service</h2>
+    <p>สร้าง MySQL Database บน Cloud และเชื่อมต่อกับ Flask App — อัปเกรดจาก In-Memory เป็น Database จริง</p>
+    <div class="tag-row">
+      <span class="tag tw2">RDS MySQL 8.0</span><span class="tag tw2">db.t3.micro</span>
+      <span class="tag tw2">PyMySQL</span><span class="tag tw2">python-dotenv</span>
+      <span class="tag tw2">CRUD API</span><span class="tag tw2">Security Group</span>
+      <span class="tag tw2">Parameterized Query</span><span class="tag tw2">RDS Snapshot</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon ci-w2">📋</div>
+      <div><div class="card-label cl-w2">หัวข้อที่เรียน</div><div class="card-title">สรุป Key Concepts — Week 2</div></div>
+    </div>
+    <div class="card-body">
+      <div class="summary-grid">
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>RDS Managed Service</strong>AWS ดูแล Patching, Backup, Failover ให้ — เราเขียนแค่ SQL</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Single-AZ vs Multi-AZ</strong>Single-AZ = Free Tier ✅, Multi-AZ = High Availability แต่มีค่าใช้จ่าย</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Private Subnet Pattern</strong>RDS Public access: No — EC2 เป็น gateway เดียวที่เข้าถึง DB ได้</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Environment Variables (.env)</strong>เก็บ credentials แยกจาก code — ไม่ commit ขึ้น git โดยเด็ดขาด</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>PyMySQL + execute_query()</strong>Helper function — commit() หลัง write, rollback() เมื่อ error</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Parameterized Query</strong>ใช้ %s แทนค่า ป้องกัน SQL Injection — ห้ามใช้ string format เด็ดขาด</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>CRUD Operations</strong>GET (SELECT), POST (INSERT), PUT (UPDATE), DELETE — HTTP methods ตรงกับ SQL</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>RDS Snapshot</strong>Manual backup ที่เก็บไว้ได้ตลอด — ต่างจาก Automated Backup ที่มีอายุจำกัด</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon ci-gold">✏️</div>
+      <div><div class="card-label cl-gold">เฉลยแบบฝึกหัด</div><div class="card-title">Week 2</div></div>
+    </div>
+    <div class="card-body">
+      <div class="ex-block">
+        <div class="ex-title"><div class="ex-num en-w2">1</div><div class="ex-name">Enrollment System — POST /enrollments + GET endpoints</div></div>
+        <div class="answer-box">
+          <div class="code-wrap">
+            <div class="code-hd ch-py"><span>เฉลย — Enrollment Endpoints ใน app.py</span><span>Python</span></div>
+            <pre><code><span class="cm"># 1. POST /enrollments — ลงทะเบียนนักศึกษาในวิชา</span>
+<span class="nb">@</span>app.<span class="fn">route</span>(<span class="str">'/enrollments'</span>, methods=[<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fn">create_enrollment</span>():
+    <span class="kw">try</span>:
+        data = request.<span class="fn">get_json</span>()
+        new_id = <span class="fn">execute_query</span>(
+            <span class="str">"INSERT INTO enrollments (student_id, course_id, semester) VALUES (%s, %s, %s)"</span>,
+            (data[<span class="str">'student_id'</span>], data[<span class="str">'course_id'</span>], data.<span class="fn">get</span>(<span class="str">'semester'</span>, <span class="str">'2/2568'</span>)),
+            fetch=<span class="nb">False</span>
+        )
+        <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"enrollment_id"</span>: new_id}), <span class="num">201</span>
+    <span class="kw">except</span> <span class="nb">Exception</span> <span class="kw">as</span> e:
+        <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"error"</span>, <span class="str">"message"</span>: <span class="nb">str</span>(e)}), <span class="num">500</span>
+
+<span class="cm"># 2. GET /students/&lt;id&gt;/courses — วิชาที่นักศึกษาลงทะเบียน</span>
+<span class="nb">@</span>app.<span class="fn">route</span>(<span class="str">'/students/&lt;int:sid&gt;/courses'</span>, methods=[<span class="str">'GET'</span>])
+<span class="kw">def</span> <span class="fn">student_courses</span>(sid):
+    result = <span class="fn">execute_query</span>(
+        <span class="str">"""SELECT c.course_code, c.course_name, e.grade, e.semester
+           FROM enrollments e JOIN courses c ON e.course_id = c.id
+           WHERE e.student_id = %s"""</span>, (sid,)
+    )
+    <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"data"</span>: result})
+
+<span class="cm"># 3. GET /courses/&lt;id&gt;/students — นักศึกษาในวิชา</span>
+<span class="nb">@</span>app.<span class="fn">route</span>(<span class="str">'/courses/&lt;int:cid&gt;/students'</span>, methods=[<span class="str">'GET'</span>])
+<span class="kw">def</span> <span class="fn">course_students</span>(cid):
+    result = <span class="fn">execute_query</span>(
+        <span class="str">"""SELECT s.student_id, s.name, e.grade, e.semester
+           FROM enrollments e JOIN students s ON e.student_id = s.id
+           WHERE e.course_id = %s"""</span>, (cid,)
+    )
+    <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"data"</span>: result})</code></pre>
+          </div>
+          <div class="answer-text" style="margin-top:10px"><p><strong>จุดสำคัญ:</strong> ใช้ <span class="code-inline">JOIN</span> เชื่อมตาราง, ส่ง <span class="code-inline">fetch=False</span> สำหรับ INSERT, ระบุ HTTP status <span class="code-inline">201 Created</span> สำหรับสร้างข้อมูลใหม่</p></div>
+        </div>
+      </div>
+
+      <div class="ex-block">
+        <div class="ex-title"><div class="ex-num en-w2">2</div><div class="ex-name">RDS Snapshot</div></div>
+        <div class="answer-box">
+          <div class="answer-text">
+            <p><strong>ขั้นตอน:</strong> RDS → Databases → ict24267-db → Actions → Take snapshot → ตั้งชื่อ <span class="code-inline">ict24267-db-week2-backup</span> → Take Snapshot</p>
+            <p><strong>ความแตกต่างของ Backup ใน RDS 2 แบบ:</strong></p>
+            <ul>
+              <li><strong>Automated Backup:</strong> รันทุกวันอัตโนมัติ, เก็บได้ 1-35 วัน (ตั้งใน Retention period), ลบอัตโนมัติเมื่อ DB หมดอายุ</li>
+              <li><strong>Manual Snapshot:</strong> ทำเองได้ตลอดเวลา, เก็บไว้ได้ตลอดไป ไม่มีวันหมดอายุ — ต้องลบเองถ้าไม่ต้องการ</li>
+            </ul>
+            <p><strong>ใช้เมื่อไหร่:</strong> ก่อน upgrade major version, ก่อนทำ migration, ก่อนทดสอบ schema change ที่อาจพัง</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon ci-w2">🗒️</div>
+      <div><div class="card-label cl-w2">เฉลยคำถามท้ายบท</div><div class="card-title">Week 2 — 5 ข้อ</div></div>
+    </div>
+    <div class="card-body" style="padding:16px 18px">
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w2">1</div><div class="qa-text"><span class="qa-keyword">RDS vs MySQL บน EC2</span><span class="qa-question">ข้อดีของ RDS Managed Service เปรียบกับติดตั้งเองบน EC2 อย่างน้อย 3 ข้อ</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <ul>
+            <li><strong>Automated Backup & Recovery:</strong> RDS backup ทุกวันอัตโนมัติ, restore ได้ถึงระดับวินาที (Point-in-Time) — ติดตั้งเองต้องเขียน cron job + mysqldump เอง</li>
+            <li><strong>Automated Patching:</strong> AWS update security patches ให้อัตโนมัติ — ติดตั้งเองต้องดู CVE และ patch เอง</li>
+            <li><strong>High Availability (Multi-AZ):</strong> เปิด Multi-AZ แล้ว failover อัตโนมัติใน &lt;2 นาที — ติดตั้งเองต้องตั้ง replication เอง</li>
+            <li><strong>Monitoring ในตัว:</strong> CloudWatch metrics, Performance Insights, Enhanced Monitoring รวมอยู่แล้ว</li>
+            <li><strong>Scalability:</strong> เพิ่ม instance size ได้ง่ายผ่าน Console — ไม่ต้อง migrate data</li>
+          </ul>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w2">2</div><div class="qa-text"><span class="qa-keyword">Security Best Practice</span><span class="qa-question">ทำไม RDS ต้องตั้ง Public access: No? ความเสี่ยงถ้าเปิด Public?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <p><strong>เหตุผลที่ต้อง Public access: No:</strong></p>
+          <ul>
+            <li>Database ควรอยู่ใน Private Subnet ที่ไม่สามารถเข้าถึงจาก Internet ได้โดยตรง</li>
+            <li>ให้ EC2 เป็น "Jump Server" หรือ gateway — traffic ผ่าน Application layer ก่อน</li>
+            <li>ลด Attack Surface — bot scanner จาก Internet ไม่เห็น DB endpoint</li>
+          </ul>
+          <p><strong>ความเสี่ยงถ้าเปิด Public access: Yes:</strong></p>
+          <ul>
+            <li><strong>Brute Force Attack:</strong> bot พยายาม login ด้วย password ต่างๆ ตลอด 24 ชม.</li>
+            <li><strong>SQL Injection จาก Internet:</strong> ถ้า password รั่วออกไป ใครก็เข้า DB ได้โดยตรง</li>
+            <li><strong>Data Exfiltration:</strong> dump ข้อมูลออกได้ทันทีโดยไม่ผ่าน Application</li>
+            <li><strong>Zero-day Exploit:</strong> MySQL vulnerability ถูกโจมตีได้โดยตรง</li>
+          </ul>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w2">3</div><div class="qa-text"><span class="qa-keyword">Connection Pooling</span><span class="qa-question">ถ้ามีผู้ใช้ 1,000 คน สร้าง DB connection ใหม่ทุก request — ปัญหาคืออะไร? Pool แก้อย่างไร?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <p><strong>ปัญหาที่เกิดขึ้น:</strong></p>
+          <ul>
+            <li><strong>Connection Overhead:</strong> การสร้าง TCP connection + MySQL handshake ใช้เวลา 10-100ms ทุกครั้ง — ช้ามาก</li>
+            <li><strong>MySQL Connection Limit:</strong> MySQL มี max_connections (default ~150) ถ้า 1,000 request พร้อมกัน จะ error "Too many connections"</li>
+            <li><strong>Resource Waste:</strong> แต่ละ connection กิน RAM ของ MySQL server</li>
+          </ul>
+          <p><strong>Connection Pool แก้อย่างไร:</strong></p>
+          <ul>
+            <li>สร้าง connection ไว้ล่วงหน้าจำนวนหนึ่ง (เช่น 10-20 connections)</li>
+            <li>แต่ละ request "ขอยืม" connection จาก pool — เมื่อเสร็จแล้ว "คืน" ไม่ได้ปิด</li>
+            <li>ลด overhead ต่อ request จาก ~50ms เหลือ &lt;1ms สำหรับการขอ connection</li>
+            <li>ใน Python ใช้ <span class="code-inline">SQLAlchemy</span> หรือ <span class="code-inline">DBUtils.PooledDB</span></li>
+          </ul>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w2">4</div><div class="qa-text"><span class="qa-keyword">Database Backup</span><span class="qa-question">AWS RDS มีกลยุทธ์ backup กี่แบบ? แต่ละแบบต่างกันอย่างไร?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <table class="cmp-table">
+            <tr><th>ด้าน</th><th>Automated Backup</th><th>Manual Snapshot</th></tr>
+            <tr><td>Trigger</td><td>อัตโนมัติ ทุกวันใน maintenance window</td><td>ทำเองได้ตลอดเวลา</td></tr>
+            <tr><td>Retention</td><td>1-35 วัน (ตั้งได้), ลบอัตโนมัติ</td><td>ตลอดไป ต้องลบเอง</td></tr>
+            <tr><td>Point-in-Time</td><td class="hi-w3">✅ restore ถึงระดับวินาที</td><td class="hi-w2">❌ restore ณ เวลาที่ snapshot</td></tr>
+            <tr><td>ค่าใช้จ่าย</td><td>ฟรีสำหรับ storage เท่ากับ DB size</td><td>คิดค่า S3 storage</td></tr>
+            <tr><td>ลบเมื่อ DB ถูกลบ</td><td>ลบตาม (ถ้าไม่ระบุ final snapshot)</td><td>ยังอยู่ — ต้องลบเอง</td></tr>
+          </table>
+          <p style="margin-top:8px"><strong>Best Practice:</strong> ใช้ทั้งสองแบบร่วมกัน — Automated Backup สำหรับ recovery รายวัน, Manual Snapshot สำหรับ milestone สำคัญ (ก่อน upgrade, ก่อน production deploy)</p>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w2">5</div><div class="qa-text"><span class="qa-keyword">SQL Injection</span><span class="qa-question">ทำไม Parameterized Query (%s) ถึงปลอดภัยกว่า String Formatting?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <p><strong>String Formatting (อันตราย ❌):</strong></p>
+          <div class="code-wrap"><div class="code-hd ch-py"><span>ห้ามทำแบบนี้</span></div><pre><code><span class="cm"># ❌ อันตราย — SQL Injection ได้</span>
+name = request.args.<span class="fn">get</span>(<span class="str">'name'</span>)  <span class="cm"># ถ้า user ใส่: "'; DROP TABLE students; --"</span>
+query = <span class="nb">f</span><span class="str">"SELECT * FROM students WHERE name = '{name}'"</span>
+<span class="cm"># จะกลายเป็น: SELECT * FROM students WHERE name = ''; DROP TABLE students; --'</span></code></pre></div>
+          <p><strong>Parameterized Query (ปลอดภัย ✅):</strong></p>
+          <div class="code-wrap"><div class="code-hd ch-py"><span>วิธีที่ถูกต้อง</span></div><pre><code><span class="cm"># ✅ ปลอดภัย — PyMySQL จัดการ escape ให้</span>
+cursor.<span class="fn">execute</span>(<span class="str">"SELECT * FROM students WHERE name = %s"</span>, (name,))
+<span class="cm"># PyMySQL จะ escape ทุกตัวอักษรพิเศษอัตโนมัติ</span>
+<span class="cm"># "'; DROP TABLE students; --" จะถูกมองเป็น string ธรรมดา ไม่ใช่ SQL command</span></code></pre></div>
+          <p><strong>หลักการ:</strong> Parameterized Query แยก "โครงสร้าง SQL" ออกจาก "ค่าข้อมูล" — database driver จัดการ escaping ให้ก่อน query ถูกส่งไปยัง MySQL ทำให้ user input ไม่มีทางเป็น SQL command ได้</p>
+        </div></div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ WEEK 3 ════════════════════ -->
+<div class="week-block" id="w3">
+  <div class="week-banner w3" data-n="3">
+    <div class="wlabel">📅 Week 3</div>
+    <h2>Serverless — Lambda + DynamoDB</h2>
+    <p>สร้าง ICT Feedback System แบบ Serverless ด้วย Lambda + DynamoDB — ไม่มี Server ให้ดูแล จ่ายเฉพาะตอนใช้จริง</p>
+    <div class="tag-row">
+      <span class="tag tw3">AWS Lambda</span><span class="tag tw3">DynamoDB</span>
+      <span class="tag tw3">IAM Role</span><span class="tag tw3">Function URL</span>
+      <span class="tag tw3">Event-Driven</span><span class="tag tw3">CORS</span>
+      <span class="tag tw3">NoSQL</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon ci-w3">📋</div><div><div class="card-label cl-w3">หัวข้อที่เรียน</div><div class="card-title">สรุป Key Concepts — Week 3</div></div></div>
+    <div class="card-body">
+      <div class="summary-grid">
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Serverless Computing</strong>เขียนแค่ code — AWS ดูแล Server, OS, Scaling, Availability ให้ทั้งหมด</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Lambda Function</strong>รัน code เมื่อมี event trigger — จ่ายเฉพาะ ms ที่รันจริง ไม่มี idle cost</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>DynamoDB NoSQL</strong>Key-value store, ไม่มี schema, 25 GB ฟรีตลอดไป, scale ได้ไม่จำกัด</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>IAM Role</strong>"ใบอนุญาต" ของ Lambda — ต้องมีก่อนจึงเข้าถึง DynamoDB, SNS, CloudWatch ได้</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Function URL</strong>URL สาธารณะของ Lambda — ง่ายกว่า API Gateway เหมาะกับ project เล็ก</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>CORS Headers</strong>ต้องใส่ Access-Control-Allow-Origin: * เพื่อให้ browser เรียก Lambda ได้</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>lambda_handler(event, context)</strong>entry point ของทุก Lambda — event คือข้อมูล request, context คือ metadata</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Cold Start</strong>Lambda "ตื่น" จากการหลับ ใช้เวลา ~100-500ms ครั้งแรก — ลดได้ด้วย Provisioned Concurrency</div></div>
+      </div>
+      <div style="margin-top:14px">
+        <p style="color:var(--muted);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:var(--font-en);margin-bottom:10px">DynamoDB vs RDS เปรียบเทียบ</p>
+        <table class="ctable">
+          <tr><th>ด้าน</th><th>DynamoDB (Week 3)</th><th>RDS MySQL (Week 2)</th></tr>
+          <tr><td>ประเภท</td><td class="hi-w3">NoSQL (Key-Value)</td><td class="hi-w2">SQL (Relational)</td></tr>
+          <tr><td>Schema</td><td class="hi-w3">ไม่มี — ยืดหยุ่น</td><td class="hi-w2">มี — ต้องออกแบบก่อน</td></tr>
+          <tr><td>Query</td><td class="hi-gold">จำกัด — ต้องรู้ Partition Key</td><td class="hi-w3">ยืดหยุ่นมาก — JOIN, GROUP BY, WHERE</td></tr>
+          <tr><td>ค่าใช้จ่าย</td><td class="hi-w3">ฟรี 25 GB ตลอดไป</td><td class="hi-gold">ฟรี 12 เดือนแรก (750 ชม./เดือน)</td></tr>
+          <tr><td>Server</td><td class="hi-w3">ไม่มี — Serverless</td><td class="hi-w2">มี — ต้องรันตลอด</td></tr>
+          <tr><td>เหมาะกับ</td><td>Simple CRUD, High throughput</td><td>Complex queries, Reporting, Relations</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon ci-gold">✏️</div><div><div class="card-label cl-gold">เฉลยแบบฝึกหัด</div><div class="card-title">Week 3</div></div></div>
+    <div class="card-body">
+      <div class="ex-block">
+        <div class="ex-title"><div class="ex-num en-w3">1</div><div class="ex-name">เพิ่ม Validation — student_name และ comment</div></div>
+        <div class="answer-box">
+          <div class="code-wrap"><div class="code-hd ch-py"><span>เฉลย — เพิ่มใน submit-feedback Lambda</span><span>Python</span></div>
+<pre><code><span class="cm"># เพิ่มใน lambda_handler หลังตรวจสอบ required fields</span>
+<span class="cm"># ตรวจสอบ field ที่จำเป็น</span>
+required = [<span class="str">'student_name'</span>, <span class="str">'course'</span>, <span class="str">'rating'</span>]
+<span class="kw">for</span> field <span class="kw">in</span> required:
+    <span class="kw">if not</span> body.<span class="fn">get</span>(field):
+        <span class="kw">return</span> <span class="fn">cors_response</span>(<span class="num">400</span>, {<span class="str">'status'</span>: <span class="str">'error'</span>, <span class="str">'message'</span>: <span class="nb">f</span><span class="str">'กรุณากรอก {field}'</span>})
+
+<span class="cm"># ✅ Validation เพิ่มเติม</span>
+<span class="kw">if</span> <span class="nb">len</span>(body[<span class="str">'student_name'</span>].strip()) < <span class="num">2</span>:
+    <span class="kw">return</span> <span class="fn">cors_response</span>(<span class="num">400</span>, {
+        <span class="str">'status'</span>: <span class="str">'error'</span>,
+        <span class="str">'message'</span>: <span class="str">'student_name ต้องมีความยาวอย่างน้อย 2 ตัวอักษร'</span>
+    })
+
+comment = body.<span class="fn">get</span>(<span class="str">'comment'</span>, <span class="str">''</span>)
+<span class="kw">if</span> <span class="nb">len</span>(comment) > <span class="num">500</span>:
+    <span class="kw">return</span> <span class="fn">cors_response</span>(<span class="num">400</span>, {
+        <span class="str">'status'</span>: <span class="str">'error'</span>,
+        <span class="str">'message'</span>: <span class="nb">f</span><span class="str">'comment ยาวเกินไป ({len(comment)}/500 ตัวอักษร)'</span>
+    })</code></pre></div>
+        </div>
+      </div>
+
+      <div class="ex-block">
+        <div class="ex-title"><div class="ex-num en-w3">2</div><div class="ex-name">ทดสอบ Error Cases</div></div>
+        <div class="answer-box">
+          <div class="answer-text">
+            <table style="width:100%;border-collapse:collapse;font-size:0.98rem">
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0;color:var(--muted);width:35%">ไม่ส่ง student_name</td><td style="padding:8px 0"><span style="color:#86efac;font-weight:600">400 Bad Request</span> + <span class="code-inline">"message": "กรุณากรอก student_name"</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0;color:var(--muted)">rating เป็น 6</td><td style="padding:8px 0"><span style="color:#86efac;font-weight:600">400 Bad Request</span> + <span class="code-inline">"message": "rating ต้องอยู่ระหว่าง 1-5"</span></td></tr>
+              <tr><td style="padding:8px 0;color:var(--muted)">rating เป็น "abc"</td><td style="padding:8px 0"><span style="color:#fca5a5;font-weight:600">500 Internal Server Error</span> — <span class="code-inline">int("abc")</span> throw ValueError → จับด้วย except Exception</td></tr>
+            </table>
+            <p style="margin-top:10px"><strong>การปรับปรุง:</strong> เพิ่ม try/except สำหรับการแปลง rating เป็น int โดยเฉพาะ เพื่อคืน 400 แทน 500</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon ci-w3">🗒️</div><div><div class="card-label cl-w3">เฉลยคำถามท้ายบท</div><div class="card-title">Week 3 — 5 ข้อ</div></div></div>
+    <div class="card-body" style="padding:16px 18px">
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w3">1</div><div class="qa-text"><span class="qa-keyword">Serverless vs Traditional</span><span class="qa-question">ถ้ามีคนใช้ 1,000 คน/วัน แต่กระจุกตัวช่วง 9:00-17:00 น. ควรใช้แบบไหน? เพราะอะไร?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <p><strong>คำตอบ: Lambda (Serverless) เหมาะกว่า</strong> เพราะ traffic กระจุกตัวชัดเจน — ระหว่างนอกเวลา 17:00-9:00 น. (16 ชั่วโมง/วัน) แทบไม่มีคนใช้</p>
+          <ul>
+            <li><strong>EC2 คงที่ 24 ชม.:</strong> จ่ายเงิน 24 ชม./วัน แต่ใช้จริงแค่ 8 ชม. = เสียเงินเปล่า 67%</li>
+            <li><strong>Lambda จ่ายตามใช้จริง:</strong> ช่วงที่ไม่มี request = ไม่เสียเงินเลย</li>
+            <li><strong>Auto-scaling:</strong> ช่วง peak (เช้า 9 โมง ทุกคน login พร้อมกัน) Lambda scale ขึ้นอัตโนมัติ</li>
+          </ul>
+          <p><strong>EC2 เหมาะกว่าถ้า:</strong> ระบบต้องการ connection แบบ persistent (WebSocket, Game Server), หรือมี background process รันตลอด 24 ชม. โดยไม่ขึ้นกับ request</p>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w3">2</div><div class="qa-text"><span class="qa-keyword">DynamoDB vs RDS</span><span class="qa-question">เปรียบเทียบใน 4 ด้าน: โครงสร้างข้อมูล, query, ค่าใช้จ่าย, ความเหมาะสม</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <ul>
+            <li><strong>โครงสร้างข้อมูล:</strong> DynamoDB = flexible (NoSQL, JSON-like, ไม่มี schema), RDS = fixed schema (ตาราง, columns, data types ต้องกำหนดล่วงหน้า)</li>
+            <li><strong>การ Query:</strong> DynamoDB = จำกัด (ต้องรู้ Partition Key, ไม่มี JOIN), RDS = ยืดหยุ่นมาก (JOIN หลายตาราง, aggregate functions, subquery)</li>
+            <li><strong>ค่าใช้จ่าย:</strong> DynamoDB = ฟรี 25 GB + 25 WCU/RCU ตลอดไป (Always Free), RDS = ฟรี 750 ชม./เดือน แค่ 12 เดือนแรก</li>
+            <li><strong>ความเหมาะสม:</strong> DynamoDB → CRUD ง่าย, high traffic, gaming leaderboard, session storage; RDS → รายงาน, financial data, ข้อมูลที่มี relation ซับซ้อน</li>
+          </ul>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w3">3</div><div class="qa-text"><span class="qa-keyword">Function URL vs API Gateway</span><span class="qa-question">ข้อดีข้อเสียของแต่ละแบบ และสถานการณ์ใดควรใช้อะไร?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <table class="cmp-table">
+            <tr><th>ด้าน</th><th>Function URL</th><th>API Gateway</th></tr>
+            <tr><td>ความง่าย</td><td class="hi-w3">✅ 2-3 click เสร็จ</td><td class="hi-gold">⚠️ ต้องตั้ง Resource, Method, Deploy</td></tr>
+            <tr><td>ค่าใช้จ่าย</td><td class="hi-w3">✅ ฟรี (ใช้ quota Lambda)</td><td class="hi-gold">⚠️ 1M calls/เดือน ฟรี (12 เดือนแรก)</td></tr>
+            <tr><td>Authentication</td><td class="hi-gold">⚠️ NONE หรือ IAM เท่านั้น</td><td class="hi-w3">✅ API Key, Cognito, Lambda Authorizer</td></tr>
+            <tr><td>Throttling</td><td class="hi-w2">❌ ต้อง config เอง</td><td class="hi-w3">✅ Rate limiting ในตัว</td></tr>
+            <tr><td>Custom Domain</td><td class="hi-w2">❌ ไม่รองรับ</td><td class="hi-w3">✅ ใส่ domain ได้</td></tr>
+            <tr><td>เหมาะกับ</td><td>Project เล็ก, prototype, internal tool</td><td>Production API, public API, multi-endpoint</td></tr>
+          </table>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w3">4</div><div class="qa-text"><span class="qa-keyword">Cold Start</span><span class="qa-question">เกิดจากอะไร? มีผลกระทบอย่างไรต่อ User Experience?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <p><strong>Cold Start เกิดจาก:</strong> เมื่อไม่มี request มาสักพัก Lambda จะ "หลับ" (terminate container) — ครั้งถัดไปที่มี request AWS ต้องทำ:</p>
+          <ul>
+            <li>Download code จาก S3 (~50-100ms)</li>
+            <li>สร้าง container ใหม่ (~100-200ms)</li>
+            <li>Initialize Python runtime + import libraries (~100-500ms)</li>
+            <li>รัน code จริง</li>
+          </ul>
+          <p><strong>รวมกันอาจใช้เวลา 500ms-3 วินาที</strong> — Warm start (container ยังอยู่) ใช้แค่ &lt;100ms</p>
+          <p><strong>ผลกระทบต่อ UX:</strong> User รู้สึก "ช้า" ครั้งแรก โดยเฉพาะ API ที่ไม่ค่อยมีคนใช้</p>
+          <p><strong>วิธีลด Cold Start:</strong></p>
+          <ul>
+            <li><strong>Provisioned Concurrency:</strong> ให้ Lambda "warm" ตลอดเวลา (มีค่าใช้จ่าย)</li>
+            <li><strong>Warm-up ping:</strong> ส่ง request ปลอมทุก 5 นาทีเพื่อป้องกัน Lambda หลับ</li>
+            <li><strong>ลด package size:</strong> import เฉพาะที่ต้องใช้, ใช้ Lambda Layer</li>
+          </ul>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w3">5</div><div class="qa-text"><span class="qa-keyword">IAM Role & Least Privilege</span><span class="qa-question">Function จริงๆ ต้องการ permission อะไรบ้าง? การให้เกินมีความเสี่ยงอะไร?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <p><strong>Permission ที่จำเป็นจริงๆ สำหรับ submit-feedback Lambda:</strong></p>
+          <ul>
+            <li><span class="code-inline">dynamodb:PutItem</span> — เฉพาะ table ict24267-feedbacks เท่านั้น</li>
+            <li><span class="code-inline">logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents</span> — สำหรับ CloudWatch Logs</li>
+            <li><span class="code-inline">sns:Publish</span> — เฉพาะ topic ARN ที่ระบุ</li>
+          </ul>
+          <p><strong>แต่เราให้ AmazonDynamoDBFullAccess</strong> ซึ่งรวมถึง DeleteTable, CreateTable, Scan ทุก table</p>
+          <p><strong>ความเสี่ยงของการให้ permission เกิน (Over-privileged):</strong></p>
+          <ul>
+            <li>ถ้า code มี bug → อาจ delete table ที่ไม่ต้องการโดยไม่ตั้งใจ</li>
+            <li>ถ้า Lambda ถูก compromise → attacker ได้ access เต็มๆ ของ DynamoDB ทั้งบัญชี</li>
+            <li>ละเมิดหลัก <strong>Principle of Least Privilege</strong> (ให้สิทธิ์น้อยที่สุดเท่าที่จำเป็น)</li>
+          </ul>
+        </div></div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ WEEK 4 ════════════════════ -->
+<div class="week-block" id="w4">
+  <div class="week-banner w4" data-n="4">
+    <div class="wlabel">📅 Week 4</div>
+    <h2>Automation, Monitoring & Frontend</h2>
+    <p>เพิ่ม Scheduled Tasks, Email Alert, CloudWatch Dashboard และ Static Website บน S3 — ระบบ Serverless สมบูรณ์แบบ</p>
+    <div class="tag-row">
+      <span class="tag tw4">EventBridge</span><span class="tag tw4">SNS</span>
+      <span class="tag tw4">CloudWatch</span><span class="tag tw4">S3 Static Website</span>
+      <span class="tag tw4">cron expression</span><span class="tag tw4">Alarm</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon ci-w4">📋</div><div><div class="card-label cl-w4">หัวข้อที่เรียน</div><div class="card-title">สรุป Key Concepts — Week 4</div></div></div>
+    <div class="card-body">
+      <div class="summary-grid">
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>EventBridge Scheduler</strong>ตั้งเวลาให้ Lambda รันอัตโนมัติ — ใช้ cron expression เช่น <code style="font-size:0.8em;color:#f1fa8c">cron(0 1 * * ? *)</code> = ทุกวัน 08:00 ไทย</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>SNS Topic & Subscription</strong>สร้าง Topic → Subscribe Email → Confirm → Lambda publish ได้ — ฟรี 1,000 email/เดือน</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>CloudWatch Logs</strong>เก็บ print() จาก Lambda อัตโนมัติ — Log Group → Log Stream → Log Events</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>CloudWatch Alarm</strong>แจ้งเตือนเมื่อ metric ผิดปกติ — เชื่อม SNS เพื่อส่ง email อัตโนมัติ</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>S3 Static Website</strong>Host HTML/CSS/JS บน S3 โดยไม่ต้องมี Server — ฟรี, scale ได้ไม่จำกัด</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Bucket Policy</strong>ต้องตั้ง s3:GetObject สำหรับ Principal: * เพื่อให้ทุกคนเข้าเว็บได้</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Observability 3 เสา</strong>Logging (บันทึกเหตุการณ์) + Monitoring (ดู metrics) + Alerting (แจ้งเมื่อผิดปกติ)</div></div>
+        <div class="summary-item"><span class="si-check">✅</span><div class="si-text"><strong>Cron Syntax</strong><code style="font-size:0.8em;color:#f1fa8c">cron(M H D Mo W Y)</code> — นาที ชั่วโมง วัน เดือน วันในสัปดาห์ ปี (? = any)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon ci-gold">✏️</div><div><div class="card-label cl-gold">เฉลยแบบฝึกหัด</div><div class="card-title">Week 4</div></div></div>
+    <div class="card-body">
+      <div class="ex-block">
+        <div class="ex-title"><div class="ex-num en-w4">1</div><div class="ex-name">เพิ่ม Filter วันนี้ใน Daily Summary</div></div>
+        <div class="answer-box">
+          <div class="code-wrap"><div class="code-hd ch-py"><span>เฉลย — กรองเฉพาะ feedback วันนี้</span><span>Python</span></div>
+<pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime, date
+<span class="kw">from</span> boto3.dynamodb.conditions <span class="kw">import</span> Attr
+
+<span class="kw">def</span> <span class="fn">lambda_handler</span>(event, context):
+    today_str = <span class="nb">str</span>(date.<span class="fn">today</span>())  <span class="cm"># เช่น "2026-03-19"</span>
+    <span class="nb">print</span>(<span class="nb">f</span><span class="str">"สรุป feedback วันที่ {today_str}"</span>)
+    <span class="kw">try</span>:
+        <span class="cm"># ✅ กรองเฉพาะ timestamp ที่ขึ้นต้นด้วยวันนี้</span>
+        response = table.<span class="fn">scan</span>(
+            FilterExpression=<span class="fn">Attr</span>(<span class="str">'timestamp'</span>).<span class="fn">begins_with</span>(today_str)
+        )
+        feedbacks = response.<span class="fn">get</span>(<span class="str">'Items'</span>, [])
+        <span class="nb">print</span>(<span class="nb">f</span><span class="str">"พบ {len(feedbacks)} รายการ วันนี้"</span>)
+        <span class="cm"># ... ส่วนที่เหลือเหมือนเดิม</span></code></pre></div>
+          <div class="answer-text" style="margin-top:10px">
+            <p><strong>จุดสำคัญ:</strong> <span class="code-inline">begins_with()</span> ใช้ได้เพราะ timestamp เก็บในรูปแบบ ISO 8601 (<span class="code-inline">2026-03-19T10:30:00</span>) ซึ่งขึ้นต้นด้วยวันที่เสมอ — เป็น pattern ที่ดีใน DynamoDB</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ex-block">
+        <div class="ex-title"><div class="ex-num en-w4">2</div><div class="ex-name">ปรับแต่ง Frontend</div></div>
+        <div class="answer-box">
+          <div class="code-wrap"><div class="code-hd ch-py"><span>เฉลยตัวอย่าง — filter rating 5 ดาว + dropdown อาจารย์</span><span>JavaScript</span></div>
+<pre><code><span class="cm">// เพิ่มปุ่ม filter rating 5 ดาว</span>
+<span class="kw">async function</span> <span class="fn">filterFiveStars</span>() {
+  <span class="kw">const</span> res  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`${API()}/feedbacks?rating=5`</span>);
+  <span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+  <span class="fn">renderTable</span>(data.data || []);
+}
+
+<span class="cm">// dropdown เลือกอาจารย์ (HTML)</span>
+<span class="cm">// &lt;select id="instructor" onchange="filterByInstructor()"&gt;</span>
+<span class="cm">//   &lt;option value=""&gt;ทุกอาจารย์&lt;/option&gt;</span>
+<span class="cm">//   &lt;option value="อ.อำนาจ"&gt;อ.อำนาจ คงเจริญถิ่น&lt;/option&gt;</span>
+<span class="cm">// &lt;/select&gt;</span>
+
+<span class="cm">// ✅ เพิ่ม field instructor ใน DynamoDB item ก่อน</span>
+<span class="cm">// แล้วส่ง query param ?instructor=อ.อำนาจ</span></code></pre></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon ci-w4">🗒️</div><div><div class="card-label cl-w4">เฉลยคำถามท้ายบท</div><div class="card-title">Week 4 — 5 ข้อ</div></div></div>
+    <div class="card-body" style="padding:16px 18px">
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w4">1</div><div class="qa-text"><span class="qa-keyword">Event-Driven Architecture</span><span class="qa-question">HTTP Request trigger vs Schedule trigger เหมาะกับงานประเภทใด? ยก use case จริง</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <table class="cmp-table">
+            <tr><th>ด้าน</th><th>HTTP Request Trigger (คนกด)</th><th>Schedule Trigger (รันเอง)</th></tr>
+            <tr><td>เมื่อไหร่รัน</td><td>เมื่อมี user action</td><td>ตามเวลาที่กำหนด (cron)</td></tr>
+            <tr><td>Use Case จริง</td><td>ส่ง feedback, login, checkout</td><td>ส่งรายงานรายวัน, backup กลางคืน, expire session</td></tr>
+            <tr><td>ตัวอย่างใน Workshop</td><td>POST /submit-feedback</td><td>daily-summary ทุก 08:00 น.</td></tr>
+            <tr><td>เหมาะกับ</td><td>งานที่ต้องตอบสนอง user ทันที</td><td>งาน batch, maintenance, report generation</td></tr>
+          </table>
+          <p style="margin-top:8px"><strong>Use Cases จริงในโลก IT:</strong></p>
+          <ul>
+            <li>Schedule: ระบบส่ง Statement บัตรเครดิต, ล้าง log เก่า, sync ข้อมูลกับ ERP ทุกคืน</li>
+            <li>HTTP: ระบบ Payment, Chat, Real-time notification</li>
+          </ul>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w4">2</div><div class="qa-text"><span class="qa-keyword">SNS vs SES</span><span class="qa-question">ความแตกต่าง และควรใช้แบบใดถ้าต้องการส่ง Email สวยงามมี HTML?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <table class="cmp-table">
+            <tr><th>ด้าน</th><th>SNS (Simple Notification Service)</th><th>SES (Simple Email Service)</th></tr>
+            <tr><td>วัตถุประสงค์</td><td>Multi-channel notification (Email, SMS, Push, SQS)</td><td>Email เท่านั้น แต่ feature ครบ</td></tr>
+            <tr><td>HTML Email</td><td class="hi-w2">❌ Text เท่านั้น</td><td class="hi-w3">✅ HTML Template สวยงามได้</td></tr>
+            <tr><td>Bulk Email</td><td class="hi-w2">❌ ไม่เหมาะ</td><td class="hi-w3">✅ ส่งได้หลายล้านฉบับ</td></tr>
+            <tr><td>Tracking</td><td class="hi-w2">❌ ไม่มี</td><td class="hi-w3">✅ Open rate, Click rate</td></tr>
+            <tr><td>Free Tier</td><td>1,000 email/เดือน</td><td>62,000 email/เดือน (ผ่าน EC2)</td></tr>
+          </table>
+          <p style="margin-top:8px"><strong>ควรใช้ SES ถ้า:</strong> ต้องการ HTML email สวยงาม (order confirmation, newsletter, welcome email) ที่มี template, logo, และ styling</p>
+          <p><strong>ใช้ SNS ถ้า:</strong> alert/notification แบบ text ธรรมดา หรือต้องการส่งไปหลาย channel พร้อมกัน (Email + SMS + Push)</p>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w4">3</div><div class="qa-text"><span class="qa-keyword">S3 Static Website</span><span class="qa-question">เปรียบเทียบกับ EC2 + Nginx (Week 1) ด้าน: ความยุ่งยาก, ค่าใช้จ่าย, Scalability</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <table class="cmp-table">
+            <tr><th>ด้าน</th><th>S3 Static Website</th><th>EC2 + Nginx (Week 1)</th></tr>
+            <tr><td>ความยุ่งยาก</td><td class="hi-w3">✅ สร้าง bucket → upload → เปิด hosting (5 นาที)</td><td class="hi-gold">⚠️ Launch EC2, SSH, ติดตั้ง Nginx, config (30+ นาที)</td></tr>
+            <tr><td>ดูแลรักษา</td><td class="hi-w3">✅ ไม่มี server ให้ดูแล</td><td class="hi-w2">❌ ต้อง patch OS, monitor disk, restart service</td></tr>
+            <tr><td>ค่าใช้จ่าย</td><td class="hi-w3">✅ ถูกมาก (~$0.023/GB), traffic ถูกกว่า EC2</td><td class="hi-gold">⚠️ จ่ายตลอด 24 ชม. แม้ไม่มีคนดู</td></tr>
+            <tr><td>Scalability</td><td class="hi-w3">✅ รองรับ traffic หลักล้านได้อัตโนมัติ</td><td class="hi-w2">❌ ต้อง scale เอง (Auto Scaling Group)</td></tr>
+            <tr><td>ข้อจำกัด</td><td class="hi-w2">❌ Static only — ไม่รัน server-side code ได้</td><td class="hi-w3">✅ รัน Python, Node.js, PHP ได้</td></tr>
+          </table>
+          <p style="margin-top:8px"><strong>สรุป:</strong> S3 Static Website เหมาะกับ Frontend ที่เป็น HTML/CSS/JS ล้วน — ถูกกว่า, ง่ายกว่า, scale ได้ดีกว่า EC2 มาก</p>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w4">4</div><div class="qa-text"><span class="qa-keyword">Observability</span><span class="qa-question">อธิบายความแตกต่างระหว่าง Logging, Monitoring และ Alerting</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย</div><div class="qa-answer">
+          <table class="cmp-table">
+            <tr><th>เสา</th><th>คืออะไร</th><th>ใน Workshop นี้</th><th>เปรียบเหมือน</th></tr>
+            <tr><td class="hi-w1"><strong>Logging</strong></td><td>บันทึกเหตุการณ์ทุกอย่างที่เกิดขึ้น</td><td>CloudWatch Logs จาก print() ใน Lambda</td><td>ไดอารี่บันทึกทุกอย่าง</td></tr>
+            <tr><td class="hi-w3"><strong>Monitoring</strong></td><td>ดู metrics สุขภาพระบบ realtime</td><td>CloudWatch Dashboard — Lambda Invocations, Errors, Duration</td><td>เครื่องวัดความดัน/ชีพจร</td></tr>
+            <tr><td class="hi-w4"><strong>Alerting</strong></td><td>แจ้งเตือนอัตโนมัติเมื่อผิดปกติ</td><td>CloudWatch Alarm → SNS → Email เมื่อ Lambda Errors ≥ 3</td><td>สัญญาณเตือนภัย</td></tr>
+          </table>
+          <p style="margin-top:8px"><strong>ทำไมต้องมีทั้ง 3 อย่าง?</strong></p>
+          <ul>
+            <li>Logging ช่วย debug หลังเกิดปัญหา — "เกิดอะไรขึ้นกันแน่?"</li>
+            <li>Monitoring ช่วยดูภาพรวมสุขภาพระบบ — "ตอนนี้ระบบเป็นอย่างไร?"</li>
+            <li>Alerting ช่วยตอบสนองรวดเร็ว — "มีปัญหา ต้องแก้ทันที!"</li>
+          </ul>
+        </div></div></div>
+      </div>
+
+      <div class="qa-item" onclick="toggle(this)">
+        <div class="qa-q"><div class="qa-qnum qn-w4">5</div><div class="qa-text"><span class="qa-keyword">Architecture Review</span><span class="qa-question">ถ้าต้องเลือกสร้างระบบใหม่ในอนาคต — EC2+RDS หรือ Lambda+DynamoDB? เพราะอะไร?</span></div><span class="qa-chevron">▾</span></div>
+        <div class="qa-a"><div class="qa-a-inner"><div class="ans-label">✅ เฉลย (ไม่มีคำตอบถูก-ผิด ขึ้นกับ requirement)</div><div class="qa-answer">
+          <p><strong>เลือก Lambda + DynamoDB เมื่อ:</strong></p>
+          <ul>
+            <li>Traffic ไม่แน่นอน หรือกระจุกตัวบางช่วงเวลา</li>
+            <li>ต้องการลดค่าใช้จ่าย (จ่ายตามใช้จริง)</li>
+            <li>ไม่อยากดูแล Server — ทีมเล็ก focus ที่ business logic</li>
+            <li>ข้อมูลไม่มี relation ซับซ้อน (CRUD ง่ายๆ)</li>
+          </ul>
+          <p><strong>เลือก EC2 + RDS เมื่อ:</strong></p>
+          <ul>
+            <li>ต้องการ SQL query ซับซ้อน (JOIN หลายตาราง, aggregate)</li>
+            <li>มี background process รันตลอด (WebSocket, queue consumer)</li>
+            <li>ระบบเดิมเป็น traditional architecture — migrate ยาก</li>
+            <li>ต้องการ ACID compliance ที่แน่นอน</li>
+          </ul>
+          <div class="big-compare" style="margin-top:12px">
+            <div class="bc-card trad"><h4>🖥️ EC2 + RDS</h4><div class="bc-row"><span class="bi">→</span><span>E-commerce ที่ต้องการ transaction</span></div><div class="bc-row"><span class="bi">→</span><span>ERP, Financial Systems</span></div><div class="bc-row"><span class="bi">→</span><span>Legacy system migration</span></div></div>
+            <div class="bc-card sls"><h4>⚡ Lambda + DynamoDB</h4><div class="bc-row"><span class="bi">→</span><span>Mobile backend, IoT data</span></div><div class="bc-row"><span class="bi">→</span><span>Chatbot, Notification service</span></div><div class="bc-row"><span class="bi">→</span><span>Event-driven microservices</span></div></div>
+          </div>
+        </div></div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHEAT SHEET ════════════ -->
+<div class="card" style="margin-bottom:32px">
+  <div class="card-header">
+    <div class="card-icon ci-gold">⚡</div>
+    <div><div class="card-label cl-gold">Quiz Cheat Sheet</div><div class="card-title">จำให้ขึ้นใจก่อนสอบ</div></div>
+  </div>
+  <div class="card-body">
+    <div class="cheat-grid">
+      <div class="cheat-card cw1">
+        <h4>🔵 Week 1 — EC2 + Flask</h4>
+        <div class="cheat-item"><div class="cheat-dot cd-w1"></div><span><strong>t3.micro</strong> ดีกว่า t2.micro — Unlimited CPU burst</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w1"></div><span><strong>User Data</strong> รันครั้งเดียวตอน launch</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w1"></div><span><strong>Security Group = Stateful</strong> Firewall ระดับ instance</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w1"></div><span><strong>Elastic IP ฟรี</strong> เฉพาะตอน Instance Running</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w1"></div><span><strong>Nginx → Flask</strong> Port 80 → Port 5000</span></div>
+      </div>
+      <div class="cheat-card cw2">
+        <h4>🟣 Week 2 — RDS MySQL</h4>
+        <div class="cheat-item"><div class="cheat-dot cd-w2"></div><span><strong>db.t3.micro + Single-AZ</strong> = Free Tier</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w2"></div><span><strong>Public access: No</strong> EC2 เป็น gateway เสมอ</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w2"></div><span><strong>Parameterized Query</strong> ป้องกัน SQL Injection</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w2"></div><span><strong>commit()</strong> หลัง INSERT/UPDATE/DELETE</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w2"></div><span><strong>Manual Snapshot</strong> เก็บตลอดไป ไม่ลบเอง</span></div>
+      </div>
+      <div class="cheat-card cw3">
+        <h4>🟢 Week 3 — Serverless</h4>
+        <div class="cheat-item"><div class="cheat-dot cd-w3"></div><span><strong>Lambda = จ่ายเมื่อรัน</strong> ไม่มี idle cost</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w3"></div><span><strong>DynamoDB Always Free</strong> 25 GB ตลอดไป</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w3"></div><span><strong>IAM Role</strong> ต้องสร้างก่อน Lambda เข้า resource อื่น</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w3"></div><span><strong>Cold Start</strong> ครั้งแรก ~500ms, Warm ใช้ &lt;100ms</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w3"></div><span><strong>Function URL</strong> ง่ายกว่า API Gateway สำหรับ project เล็ก</span></div>
+      </div>
+      <div class="cheat-card cw4">
+        <h4>🟠 Week 4 — Automation</h4>
+        <div class="cheat-item"><div class="cheat-dot cd-w4"></div><span><strong>cron(0 1 * * ? *)</strong> = ทุกวัน 08:00 ไทย (01:00 UTC)</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w4"></div><span><strong>SNS → ยืนยัน Email</strong> ก่อนได้รับแจ้งเตือน</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w4"></div><span><strong>S3 Static Website</strong> ถูก + ง่าย + scale ไม่จำกัด</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w4"></div><span><strong>Logging ≠ Monitoring ≠ Alerting</strong> ต่างกัน!</span></div>
+        <div class="cheat-item"><div class="cheat-dot cd-w4"></div><span><strong>SES</strong> = HTML Email สวยงาม, SNS = Alert text</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;padding:18px;background:var(--bg3);border-radius:12px;border:1px solid rgba(251,191,36,0.2)">
+      <p style="color:var(--gold);font-size:1.04rem;font-weight:700;font-family:var(--font-en);letter-spacing:0.06em;margin-bottom:14px">🎯 SERVICES ที่ออกสอบบ่อย — จำให้ได้ทันที</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div style="font-size:0.94rem"><strong style="color:var(--w1h)">EC2</strong><br><span style="color:var(--muted)">Virtual Machine<br>จ่ายตามชั่วโมง</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w2h)">RDS</strong><br><span style="color:var(--muted)">Managed SQL DB<br>MySQL, PostgreSQL</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w3h)">Lambda</strong><br><span style="color:var(--muted)">Serverless Function<br>จ่ายตาม ms</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w3h)">DynamoDB</strong><br><span style="color:var(--muted)">NoSQL Database<br>ฟรีตลอดไป 25 GB</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w4h)">SNS</strong><br><span style="color:var(--muted)">Notification Service<br>Email, SMS, Push</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w4h)">S3</strong><br><span style="color:var(--muted)">Object Storage<br>Static Website Host</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w1h)">IAM</strong><br><span style="color:var(--muted)">Permission & Access<br>Role, Policy, User</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w4h)">CloudWatch</strong><br><span style="color:var(--muted)">Logs, Metrics<br>Alarm, Dashboard</span></div>
+        <div style="font-size:0.94rem"><strong style="color:var(--w4h)">EventBridge</strong><br><span style="color:var(--muted)">Event Scheduler<br>Cron, Rules</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+function toggle(el){
+  el.classList.toggle('open');
+}
+// open all by default on first visit hint
+document.querySelectorAll('.qa-item').forEach(el=>{
+  el.addEventListener('click',function(e){
+    if(e.target.closest('.qa-a')) return;
+  });
+});
+</script>
+</body>
+</html>
